@@ -1,0 +1,28 @@
+# Go build output
+/bin/
+/dist/
+*.exe
+*.test
+*.out
+coverage.*
+
+# Web client
+web/node_modules/
+web/dist/
+
+# Local data (uploaded ciphertext, database)
+/data/
+*.db
+*.db-journal
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
