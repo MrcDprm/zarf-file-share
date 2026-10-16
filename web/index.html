@@ -106,19 +106,98 @@
           <section data-panel="request" hidden>
             <h1 data-i18n="request.title">Birinden dosya iste; sadece sen açabil.</h1>
             <p class="lead" data-i18n="request.lead"></p>
-            <label class="field-label" for="req-label" data-i18n="request.label">Ne istiyorsun?</label>
-            <input class="field" id="req-label" data-i18n-placeholder="request.placeholder" />
-            <button type="button" class="button" data-soon data-i18n="request.button">İstek linki oluştur</button>
-            <p class="note" data-soon-note hidden data-i18n="soon"></p>
+
+            <form class="ask" data-ask novalidate>
+              <label class="field-label" for="req-label" data-i18n="request.label">Ne istiyorsun?</label>
+              <input class="field field--wide" id="req-label" maxlength="100" autocomplete="off" data-ask-label data-i18n-placeholder="request.placeholder" />
+              <p class="field-help" data-i18n="request.label.help"></p>
+              <div class="choices">
+                <fieldset>
+                  <legend data-i18n="request.expires.legend">İstek ne kadar açık kalsın?</legend>
+                  <div class="options">
+                    <label class="option"><input type="radio" name="req-expires" value="3600" /><span data-i18n="expires.1h">1 saat</span></label>
+                    <label class="option"><input type="radio" name="req-expires" value="86400" /><span data-i18n="expires.1d">1 gün</span></label>
+                    <label class="option"><input type="radio" name="req-expires" value="604800" checked /><span data-i18n="expires.7d">7 gün</span></label>
+                  </div>
+                </fieldset>
+                <fieldset>
+                  <legend data-i18n="request.uploads.legend">En fazla kaç dosya gelebilsin?</legend>
+                  <div class="options">
+                    <label class="option"><input type="radio" name="req-uploads" value="1" /><span>1</span></label>
+                    <label class="option"><input type="radio" name="req-uploads" value="5" checked /><span>5</span></label>
+                    <label class="option"><input type="radio" name="req-uploads" value="10" /><span>10</span></label>
+                    <label class="option"><input type="radio" name="req-uploads" value="20" /><span>20</span></label>
+                  </div>
+                </fieldset>
+              </div>
+              <p class="status" data-ask-status role="status"></p>
+              <button type="submit" class="button" data-ask-submit data-i18n="request.button">İstek linki oluştur</button>
+            </form>
+
+            <section class="receipt" hidden data-ask-receipt aria-live="polite">
+              <h2 data-i18n="request.receipt.title">Linki dosyayı isteyeceğin kişiye gönder</h2>
+              <div class="link-row">
+                <p class="link" data-ask-link></p>
+                <button type="button" class="button" data-ask-copy data-i18n="receipt.copy">Kopyala</button>
+              </div>
+              <p class="receipt__terms" data-ask-terms></p>
+              <p class="receipt__terms"><span data-i18n="request.fingerprint">Doğrulama kelimeleri:</span> <span class="words" data-ask-fp></span></p>
+              <p class="receipt__terms" data-i18n="request.fingerprint.help"></p>
+              <p class="receipt__terms" data-i18n="request.only_here"></p>
+              <button type="button" class="pick" data-ask-again data-i18n="request.again">Yeni bir istek oluştur</button>
+            </section>
+
+            <section class="inbox" aria-labelledby="inbox-title">
+              <div class="inbox__head">
+                <h2 id="inbox-title" data-i18n="inbox.title">İsteklerin</h2>
+                <button type="button" class="pick" data-inbox-refresh data-i18n="inbox.refresh">Yenile</button>
+              </div>
+              <p class="log__empty" data-inbox-empty data-i18n="inbox.empty"></p>
+              <ol class="inbox__list" data-inbox hidden></ol>
+            </section>
           </section>
 
           <!-- Live mode -->
           <section data-panel="live" hidden>
             <h1 data-i18n="live.title">Karşındakiyle aynı anda, kısa bir kodla gönder.</h1>
             <p class="lead" data-i18n="live.lead"></p>
-            <p class="code-sample" aria-hidden="true">7-elma-kule</p>
-            <button type="button" class="button" data-soon data-i18n="live.button">Dosya seç ve kod al</button>
-            <p class="note" data-soon-note hidden data-i18n="soon"></p>
+
+            <div class="live">
+              <section class="live__side" aria-labelledby="live-send-title">
+                <h2 id="live-send-title" data-i18n="live.send.title">Gönder</h2>
+                <input type="file" class="visually-hidden" tabindex="-1" data-live-file />
+                <p class="live__file" data-live-file-name hidden></p>
+                <button type="button" class="button" data-live-start data-i18n="live.button">Dosya seç ve kod al</button>
+                <div class="live__code" data-live-code-box hidden>
+                  <p class="live__code-label" data-i18n="live.code.label">Kodu alıcıya söyle:</p>
+                  <p class="code" data-live-code></p>
+                  <button type="button" class="pick" data-live-copy data-i18n="live.copy">Kopyala</button>
+                </div>
+                <p class="status" data-live-send-status role="status"></p>
+                <div class="progress" data-live-send-progress hidden><span></span></div>
+                <button type="button" class="pick" data-live-cancel hidden data-i18n="live.cancel">Vazgeç</button>
+              </section>
+
+              <section class="live__side" aria-labelledby="live-receive-title">
+                <h2 id="live-receive-title" data-i18n="live.receive.title">Kodun mu var?</h2>
+                <form class="link-row" data-live-join novalidate>
+                  <label class="visually-hidden" for="live-code" data-i18n="live.code.input">Kod</label>
+                  <input class="field code-field" id="live-code" autocomplete="off" autocapitalize="none" spellcheck="false" data-live-code-input data-i18n-placeholder="live.code.placeholder" />
+                  <button type="submit" class="button" data-live-connect data-i18n="live.connect">Bağlan</button>
+                </form>
+                <div class="offer" data-live-offer hidden>
+                  <p class="offer__name" data-live-offer-name></p>
+                  <p class="offer__meta" data-live-offer-meta></p>
+                  <div class="offer__actions">
+                    <button type="button" class="button" data-live-accept data-i18n="live.accept">Kabul et ve al</button>
+                    <button type="button" class="pick" data-live-decline data-i18n="live.decline">Reddet</button>
+                  </div>
+                </div>
+                <p class="status" data-live-receive-status role="status"></p>
+                <div class="progress" data-live-receive-progress hidden><span></span></div>
+                <button type="button" class="button" data-live-save hidden data-i18n="live.save">Tekrar kaydet</button>
+              </section>
+            </div>
           </section>
         </main>
 

@@ -5,6 +5,8 @@ import { apply, lang, setLang } from "./i18n.ts";
 import { initTheme } from "./theme.ts";
 import { initSend } from "./send.ts";
 import { render as renderLog } from "./log.ts";
+import { initRequest, renderInbox } from "./request.ts";
+import { initLive } from "./live-ui.ts";
 
 const $ = <T extends HTMLElement>(sel: string) => document.querySelector<T>(sel)!;
 
@@ -16,6 +18,9 @@ document.addEventListener("zarf:lang", renderLog);
 // The three ways to send, as tabs. The address keeps the choice (#link, #iste, #kod).
 const modeOfHash: Record<string, string> = { "#iste": "request", "#kod": "live" };
 function showMode(mode: string): void {
+  if (mode === "request") renderInbox();
+  // The slip and the log describe link mode; the other two ways have their own lists.
+  $(".side").hidden = mode !== "link";
   document.querySelectorAll<HTMLElement>("[data-panel]").forEach((p) => (p.hidden = p.dataset.panel !== mode));
   document.querySelectorAll<HTMLElement>("[data-mode]").forEach((m) => {
     if (m.dataset.mode === mode) m.setAttribute("aria-current", "page");
@@ -32,10 +37,6 @@ document.querySelectorAll<HTMLAnchorElement>("[data-mode], [data-mode-link]").fo
 );
 showMode(modeOfHash[location.hash] ?? "link");
 
-// Request files and send with a code are being built; their buttons say so.
-document.querySelectorAll<HTMLElement>("[data-soon]").forEach((b) =>
-  b.addEventListener("click", () => ((b.nextElementSibling as HTMLElement).hidden = false)),
-);
 
 $("[data-copy-command]").addEventListener("click", (e) => {
   navigator.clipboard?.writeText($("[data-command]").textContent ?? "").catch(() => {});
@@ -43,4 +44,6 @@ $("[data-copy-command]").addEventListener("click", (e) => {
 });
 
 initSend();
+initRequest();
+initLive();
 renderLog();

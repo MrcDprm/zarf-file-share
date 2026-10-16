@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Zarf: senden dosya istendi</title>
+    <meta name="robots" content="noindex" />
+    <meta name="referrer" content="no-referrer" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <div class="page page--narrow">
+      <header class="top">
+        <a class="wordmark" href="/">
+          <svg class="wordmark__mark" viewBox="0 0 32 32" aria-hidden="true">
+            <rect x="3" y="7" width="26" height="18" rx="2.5" />
+            <path d="M3.8 8.2 16 17.5 28.2 8.2" />
+          </svg>
+          Zarf
+        </a>
+        <button type="button" class="icon-btn" data-lang data-i18n="lang.code" data-i18n-aria="lang.switch">EN</button>
+        <button type="button" class="icon-btn" data-theme-toggle data-i18n-aria="theme.toggle" aria-label="Temayı değiştir">
+          <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" /></svg>
+          <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
+        </button>
+      </header>
+
+      <main>
+        <h1 data-i18n="give.title">Senden dosya istendi.</h1>
+        <p class="asked" data-asked hidden><span data-i18n="give.asked">İstenen:</span> <strong data-label></strong></p>
+
+        <form class="send" data-give novalidate>
+          <input type="file" class="visually-hidden" tabindex="-1" data-file-input />
+          <div class="envelope" data-envelope>
+            <div class="flap" aria-hidden="true"></div>
+            <div class="window" data-window>
+              <div data-empty>
+                <p class="window__prompt" data-i18n="drop.prompt">Dosyayı buraya bırak</p>
+                <p class="window__hint">
+                  <span data-i18n="drop.or">ya da</span>
+                  <button type="button" class="pick" data-pick data-i18n="drop.pick">bilgisayardan seç</button>.
+                  <span data-i18n="drop.limit">En fazla 1024 MB.</span>
+                </p>
+              </div>
+              <div data-chosen hidden>
+                <p class="window__name" data-file-name></p>
+                <p class="window__hint"><span data-file-meta></span> <button type="button" class="pick" data-pick data-i18n="drop.change">Başka dosya seç</button></p>
+              </div>
+              <div class="window__cover" aria-hidden="true"></div>
+            </div>
+            <p class="status" data-status role="status"></p>
+            <div class="progress" data-progress hidden><span></span></div>
+          </div>
+
+          <p class="facts" data-facts></p>
+          <p class="facts"><span data-i18n="give.fingerprint">Doğrulama kelimeleri:</span> <span class="words" data-fp></span></p>
+          <p class="field-help" data-i18n="give.fingerprint.help"></p>
+
+          <section class="receipt" hidden data-done aria-live="polite">
+            <p class="receipt__done" data-done-text></p>
+            <button type="button" class="pick" data-again hidden data-i18n="give.again">Başka bir dosya gönder</button>
+          </section>
+
+          <button type="submit" class="button" data-submit hidden data-i18n="give.button">Şifrele ve gönder</button>
+          <p class="note" data-i18n="give.note"></p>
+        </form>
+      </main>
+
+      <footer class="foot"><span data-i18n="foot.text">Zarf açık kaynaklıdır.</span> <a href="https://github.com/MrcDprm/zarf-file-share" data-i18n="foot.link">Kaynak kodu GitHub'da.</a> <a href="/" data-i18n="recv.own">Sen de bir dosya gönder.</a></footer>
+    </div>
+
+    <div class="flight" aria-hidden="true" hidden data-flight>
+      <svg class="pigeon" viewBox="0 0 140 96" data-pigeon>
+        <g class="pigeon__body">
+          <path class="pg-tail" d="M6 50 L34 42 L36 56 Z" />
+          <path class="pg-belly" d="M30 46 C36 30 66 25 86 33 C97 38 100 49 93 57 C84 67 52 67 36 59 C30 56 28 51 30 46 Z" />
+          <path class="pg-neck" d="M82 34 C86 44 96 45 101 37 L100 46 C93 52 85 50 80 44 Z" />
+          <circle class="pg-head" cx="94" cy="30" r="12" />
+          <path class="pg-beak" d="M105 28 L115 31.5 L105 34 Z" />
+          <circle class="pg-eye-ring" cx="97.5" cy="27.5" r="3" />
+          <circle class="pg-eye" cx="97.8" cy="27.4" r="1.5" />
+          <path class="pg-feet" d="M58 64 L56 72 M66 64 L66 72" />
+        </g>
+        <g class="pigeon__wing">
+          <path class="pg-wing" d="M60 40 C50 22 32 10 16 12 C30 24 40 36 46 50 C53 50 58 47 60 40 Z" />
+          <path class="pg-bar" d="M30 18 C38 24 44 31 49 40 M24 15 C33 21 40 29 45 38" />
+        </g>
+        <g class="parcel">
+          <rect x="44" y="70" width="34" height="22" rx="2" />
+          <path d="M45 71 61 83 77 71" />
+        </g>
+      </svg>
+    </div>
+    <script type="module" src="/src/give.ts"></script>
+  </body>
+</html>

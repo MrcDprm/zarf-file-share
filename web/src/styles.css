@@ -188,17 +188,17 @@ body {
 [data-panel] > .field {
   display: block;
 }
+/* Phones: the three tabs share the width and may wrap to two lines, so none is cut off. */
 @media (max-width: 30rem) {
   .mode {
-    padding: 0.5rem 0.65rem;
-    font-size: 0.95rem;
+    flex: 1 1 0;
+    min-width: 0;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.25;
+    padding: 0.5rem 0.35rem;
+    font-size: 0.9rem;
   }
-}
-.code-sample {
-  margin: 0 0 1rem;
-  font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 1.6rem;
-  letter-spacing: 0.02em;
 }
 
 /* --- header: the name, then language and theme as small round buttons --- */
@@ -850,4 +850,210 @@ legend {
   .pigeon__wing {
     animation: none;
   }
+}
+
+/* --- request mode: the form, the receipt, and the requester's inbox --- */
+.field--wide {
+  max-width: 30rem;
+}
+.field-help {
+  margin: 0.45rem 0 0;
+  max-width: 34rem;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+.ask .status {
+  min-height: 0;
+  margin-top: 1rem;
+}
+.ask .status:empty {
+  display: none;
+}
+.words {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+.asked {
+  margin: -0.5rem 0 1.25rem;
+  font-size: 1.15rem;
+  overflow-wrap: anywhere;
+}
+.inbox {
+  margin-top: 2.5rem;
+}
+.inbox__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.6rem;
+}
+.inbox__head h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+.inbox__list,
+.inbox__files {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.inbox__list {
+  border-top: 1px solid var(--rule);
+}
+.inbox__item {
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.inbox__label {
+  margin: 0;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.inbox__meta {
+  margin: 0.15rem 0 0;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+.inbox__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+.pick--danger {
+  color: var(--error);
+}
+.inbox__files {
+  margin-top: 0.75rem;
+  display: grid;
+  gap: 0.5rem;
+}
+/* Each arrived file is a small address window: name and size, then the action. */
+.inbox__file {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.1rem 0.75rem;
+  align-items: center;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--window);
+}
+.inbox__name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.inbox__fmeta {
+  grid-column: 1;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+.inbox__file .button {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+.inbox__status {
+  grid-column: 1 / -1;
+  font-size: 0.85rem;
+}
+.inbox__status:empty {
+  display: none;
+}
+.button--small {
+  margin-top: 0;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.95rem;
+}
+
+/* --- live mode: send on one side, receive on the other --- */
+.live {
+  display: grid;
+  gap: 2rem;
+}
+@media (min-width: 40rem) {
+  .live {
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+  }
+}
+.live__side {
+  min-width: 0;
+}
+.live__side h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.25rem;
+}
+.live__side .button {
+  margin-top: 0;
+}
+.live__file {
+  margin: 0 0 0.75rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.live__code-label {
+  margin: 0 0 0.4rem;
+  color: var(--ink-soft);
+}
+/* The code is what people read out loud: large, on its own label. */
+.code {
+  margin: 0 0 0.5rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px dashed var(--blue);
+  border-radius: 6px;
+  background: var(--window);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: clamp(1.35rem, 5vw, 1.75rem);
+  letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
+}
+.live .status:empty,
+.live .progress[hidden] {
+  display: none;
+}
+.live .status {
+  margin-top: 0.75rem;
+}
+.live .progress {
+  margin-top: 0.5rem;
+}
+.live .pick {
+  margin-top: 0.5rem;
+}
+.code-field {
+  flex: 1 1 10rem;
+  max-width: none;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+.offer {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--window);
+}
+.offer__name {
+  margin: 0;
+  font-weight: 650;
+  font-size: 1.1rem;
+  overflow-wrap: anywhere;
+}
+.offer__meta {
+  margin: 0.2rem 0 0.75rem;
+  color: var(--ink-soft);
+}
+.offer__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+.offer__actions .pick {
+  margin-top: 0;
+}
+.live [data-live-save] {
+  margin-top: 0.75rem;
 }

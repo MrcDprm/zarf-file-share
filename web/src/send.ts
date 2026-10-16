@@ -1,11 +1,11 @@
-// Sending with a link: the file is encrypted in 64 KiB chunks as it is read, the sealed bytes
-// are gathered into upload parts and sent one part at a time, so even a 1024 MB file never
-// sits in memory whole. The key goes only into the link's "#" part.
+// Sending with a link: the file is encrypted as it is read and uploaded part by part
+// (lib/upload.ts). The key goes only into the link's "#" part.
 
 import { randomBytes, toB64u, toHex } from "./lib/bytes.ts";
 import { DEFAULT_ARGON, EnvelopeWriter, envelopeSize, Mode, sha256, type WriterParams } from "./lib/envelope.ts";
 import { downloadAuth, linkKey, passwordKey } from "./lib/keys.ts";
-import { ApiError, completeUpload, createUpload, putPart, retry, type Upload } from "./lib/api.ts";
+import { ApiError, completeUpload, createUpload, retry } from "./lib/api.ts";
+import { ReadError, uploadEnvelope } from "./lib/upload.ts";
 import { formatDate, formatSize, t, type Key } from "./i18n.ts";
 import { flyAway, resetEnvelope } from "./flight.ts";
 import { remember } from "./log.ts";
@@ -97,7 +97,10 @@ async function send(): Promise<void> {
   const upload = await createUpload(total, checked("expires"), checked("downloads"), await sha256(await downloadAuth(fileKey)));
   showSlip(writer.head);
   $("[data-envelope]").classList.add("is-sealed");
-  await sendParts(upload, writer, f, total);
+  await uploadEnvelope(upload, writer, f, total, (done) => {
+    setStatus(t("status.uploading", { name: f.name, p: done }), "sealed");
+    setProgress(done);
+  });
   await retry(() => completeUpload(upload));
 
   remember({ id: upload.id, name: f.name, expiresAt: upload.expires_at, deleteToken: upload.delete_token });
@@ -117,53 +120,9 @@ async function send(): Promise<void> {
   $("[data-copy-link]").focus();
 }
 
-/** Reads, seals and uploads part by part; a failed part is sent again, then the upload goes on. */
-async function sendParts(upload: Upload, writer: EnvelopeWriter, f: File, total: number): Promise<void> {
-  const partSize = upload.part_size;
-  let part = new Uint8Array(partSize);
-  let filled = 0;
-  let n = 0;
-  let sent = 0;
-
-  const flush = async () => {
-    const bytes = part.slice(0, filled); // its own buffer, so the next part can be filled meanwhile
-    const index = n++;
-    await retry(() => putPart(upload, index, bytes));
-    sent += bytes.length;
-    const done = Math.floor((sent / total) * 100);
-    setStatus(t("status.uploading", { name: f.name, p: done }), "sealed");
-    setProgress(done);
-    part = new Uint8Array(partSize);
-    filled = 0;
-  };
-  const push = async (bytes: Uint8Array) => {
-    for (let at = 0; at < bytes.length; ) {
-      const take = Math.min(bytes.length - at, partSize - filled);
-      part.set(bytes.subarray(at, at + take), filled);
-      filled += take;
-      at += take;
-      if (filled === partSize) await flush();
-    }
-  };
-
-  await push(writer.head);
-  for (let at = 0; ; at += writer.chunkSize) {
-    const end = Math.min(at + writer.chunkSize, f.size);
-    let plain: Uint8Array;
-    try {
-      plain = new Uint8Array(await f.slice(at, end).arrayBuffer());
-    } catch {
-      fail("err.read");
-    }
-    const last = end >= f.size;
-    await push(await writer.seal(plain, last));
-    if (last) break;
-  }
-  if (filled > 0) await flush();
-}
-
 function explain(err: unknown): string {
   if (err instanceof UserError) return err.message;
+  if (err instanceof ReadError) return t("err.read");
   if (err instanceof ApiError) {
     if (err.code === "network") return t("err.network");
     if (err.code === "too_large") return t("err.too_large");

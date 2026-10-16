@@ -88,6 +88,47 @@ export const reportFile = (id: string, reason: string) => call<void>("POST", `/f
 
 export const deleteFile = (id: string, deleteToken: string) => call<void>("DELETE", `/files/${id}`, { token: deleteToken });
 
+// --- requests (PROTOCOL.md section 4) ---
+
+export interface CreatedRequest {
+  rid: string;
+  owner_token: string;
+  expires_at: string;
+}
+
+export const createRequest = (label: string, expiresIn: number, maxUploads: number) =>
+  call<CreatedRequest>("POST", "/requests", { json: { label, expires_in: expiresIn, max_uploads: maxUploads } });
+
+export interface RequestFile {
+  id: string;
+  size: number;
+  created_at: string;
+  downloads_left: number;
+}
+
+export interface RequestInfo {
+  label: string;
+  expires_at: string;
+  uploads_left: number;
+  files?: RequestFile[]; // only with the owner token
+}
+
+export const requestInfo = (rid: string, ownerToken?: string) => call<RequestInfo>("GET", `/requests/${rid}`, { token: ownerToken });
+
+export const createRequestUpload = (rid: string, size: number) => call<Upload>("POST", `/requests/${rid}/uploads`, { json: { size } });
+
+export const startRequestDownload = (rid: string, id: string, ownerToken: string) =>
+  call<{ ticket: string; size: number }>("POST", `/requests/${rid}/files/${id}/download`, { token: ownerToken });
+
+export const closeRequest = (rid: string, ownerToken: string) => call<void>("DELETE", `/requests/${rid}`, { token: ownerToken });
+
+// --- live (PROTOCOL.md section 5) ---
+
+export const createLive = () => call<{ channel: number; token: string }>("POST", "/live");
+
+/** The WebSocket address of a live channel, on this same site. */
+export const liveSocketURL = (channel: number) => `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}${BASE}/live/${channel}`;
+
 /**
  * Streams the envelope. If the connection breaks, it asks for the rest with a Range request
  * on the same ticket, so a long download does not start over.

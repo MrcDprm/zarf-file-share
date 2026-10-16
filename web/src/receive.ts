@@ -7,6 +7,7 @@ import { EnvelopeReader, keyMatches, Mode, ZarfError, type Header } from "./lib/
 import { downloadAuth, linkKey, passwordKey } from "./lib/keys.ts";
 import { ApiError, downloadContent, fileInfo, reportFile, startDownload, type FileInfo } from "./lib/api.ts";
 import { safeName } from "./lib/safename.ts";
+import { saveURL } from "./lib/upload.ts";
 import { apply, formatDate, formatSize, lang, setLang, t, type Key } from "./i18n.ts";
 import { initTheme } from "./theme.ts";
 
@@ -87,14 +88,7 @@ function askPassword(h: Header, key: Uint8Array): Promise<Uint8Array> {
 }
 
 function save(): void {
-  if (!saved) return;
-  const a = document.createElement("a");
-  a.href = saved.url;
-  a.download = saved.name;
-  a.rel = "noopener";
-  document.body.append(a);
-  a.click();
-  a.remove();
+  if (saved) saveURL(saved.url, saved.name);
 }
 
 async function open(): Promise<void> {
