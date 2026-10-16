@@ -96,6 +96,10 @@ func (e usageError) Error() string { return e.msg }
 // pipe (scripts), it reads one line.
 func (a *app) terminalSecret(prompt string) (string, error) {
 	fmt.Fprint(a.errOut, prompt)
+	if secret, ok, err := readConsoleSecret(); ok {
+		fmt.Fprintln(a.errOut)
+		return secret, err
+	}
 	if fd := int(os.Stdin.Fd()); term.IsTerminal(fd) {
 		b, err := term.ReadPassword(fd)
 		fmt.Fprintln(a.errOut)
