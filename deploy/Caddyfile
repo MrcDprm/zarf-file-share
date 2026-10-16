@@ -1,0 +1,5 @@
+# Caddy in front of zarf-server: HTTPS certificates, then everything goes to the server.
+# Caddy sets X-Forwarded-For to the visitor's address, which zarf-server reads with -trust-proxy.
+zarf.miracdeprem.com {
+	reverse_proxy 127.0.0.1:8080
+}

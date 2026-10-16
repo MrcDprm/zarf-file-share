@@ -1,0 +1,33 @@
+# systemd unit for zarf-server. Install: copy the binary to /usr/local/bin/zarf-server,
+# this file to /etc/systemd/system/zarf.service, then: systemctl enable --now zarf
+[Unit]
+Description=Zarf end-to-end encrypted file sharing
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/zarf-server -addr 127.0.0.1:8080 -data /var/lib/zarf -quota 100 -trust-proxy
+Restart=on-failure
+RestartSec=5
+
+# Runs as a throwaway user with its own data folder and nothing else writable.
+DynamicUser=yes
+StateDirectory=zarf
+StateDirectoryMode=0700
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+CapabilityBoundingSet=
+
+[Install]
+WantedBy=multi-user.target
