@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -22,12 +23,13 @@ var version = "dev"
 const usage = `zarf-server: the Zarf server
 
 Usage:
-  zarf-server [serve] [-addr ADDR] [-data DIR] [-trust-proxy]
+  zarf-server [serve] [-addr ADDR] [-data DIR] [-stun ADDR|off] [-trust-proxy]
   zarf-server reports [-data DIR]       list abuse reports
   zarf-server remove [-data DIR] ID     remove a file now
   zarf-server version
 
-Every option can also come from the environment: ZARF_ADDR, ZARF_DATA, ZARF_TRUST_PROXY=1.
+Every option can also come from the environment: ZARF_ADDR, ZARF_DATA, ZARF_STUN, ZARF_TRUST_PROXY=1.
+-stun is the UDP address of the STUN responder for direct live connections (default :3478).
 `
 
 const cleanupEvery = 10 * time.Minute
@@ -42,6 +44,7 @@ func main() {
 	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
 	addr := fs.String("addr", env("ZARF_ADDR", "127.0.0.1:8080"), "")
 	data := fs.String("data", env("ZARF_DATA", "data"), "")
+	stun := fs.String("stun", env("ZARF_STUN", ":3478"), "")
 	trustProxy := fs.Bool("trust-proxy", os.Getenv("ZARF_TRUST_PROXY") == "1", "")
 	_ = fs.Parse(args)
 
@@ -60,7 +63,7 @@ func main() {
 
 	switch cmd {
 	case "serve":
-		err = serve(s, *addr)
+		err = serve(s, *addr, *stun)
 	case "reports":
 		err = listReports(s)
 	case "remove":
@@ -85,9 +88,23 @@ func env(key, fallback string) string {
 	return fallback
 }
 
-func serve(s *server.Server, addr string) error {
+func serve(s *server.Server, addr, stunAddr string) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+
+	if stunAddr != "off" {
+		conn, err := net.ListenPacket("udp", stunAddr)
+		if err != nil {
+			return fmt.Errorf("STUN on %s: %w (use -stun off to run without it)", stunAddr, err)
+		}
+		defer conn.Close()
+		go func() {
+			if err := server.ServeSTUN(conn); err != nil {
+				log.Printf("zarf-server: STUN: %v", err)
+			}
+		}()
+		log.Printf("zarf-server: STUN responder on udp %s", conn.LocalAddr())
+	}
 
 	go func() {
 		t := time.NewTicker(cleanupEvery)
