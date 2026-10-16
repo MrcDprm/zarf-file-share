@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/MrcDprm/zarf-file-share/internal/envelope"
+	"github.com/MrcDprm/zarf-file-share/internal/words"
 )
 
 const (
@@ -40,9 +41,19 @@ func (a *app) send(args []string) error {
 	withPassword := fs.Bool("p", false, "")
 	expires := fs.String("expires", "1d", "")
 	downloads := fs.Int("downloads", 1, "")
+	to := fs.String("to", "", "")
+	withCode := fs.Bool("code", false, "")
 	server := serverFlag(fs)
-	if err := fs.Parse(reorder(args, "p")); err != nil || fs.NArg() != 1 {
-		return usageError{"usage: zarf send [-p] [--expires 1h|1d|7d] [--downloads 1|5|10|20] FILE"}
+	if err := fs.Parse(reorder(args, "p", "code")); err != nil || fs.NArg() != 1 {
+		return usageError{"usage: zarf send [-p] [--expires 1h|1d|7d] [--downloads 1|5|10|20] FILE\n       zarf send --to REQUEST-LINK FILE\n       zarf send --code FILE"}
+	}
+	switch {
+	case *to != "" && *withCode:
+		return usageError{"use --to or --code, not both"}
+	case *to != "":
+		return a.sendToRequest(*to, fs.Arg(0))
+	case *withCode:
+		return a.sendLive(*server, fs.Arg(0))
 	}
 	expiresIn, ok := expiries[*expires]
 	if !ok {
@@ -113,13 +124,7 @@ func (a *app) send(args []string) error {
 		return err
 	}
 	ctx := context.Background()
-	var up struct {
-		ID          string    `json:"id"`
-		UploadToken string    `json:"upload_token"`
-		DeleteToken string    `json:"delete_token"`
-		PartSize    int64     `json:"part_size"`
-		ExpiresAt   time.Time `json:"expires_at"`
-	}
+	var up upload
 	err = c.retry(ctx, func() error {
 		return c.call(ctx, "POST", "/uploads", "", map[string]any{
 			"size": size, "expires_in": expiresIn, "max_downloads": *downloads, "dl_auth_hash": b64.EncodeToString(sha256Sum(dlAuth)),
@@ -128,10 +133,35 @@ func (a *app) send(args []string) error {
 	if err != nil {
 		return err
 	}
+	if err := c.uploadParts(ctx, tmp, size, up); err != nil {
+		return err
+	}
+
+	link := c.base.String() + "/d/" + up.ID + "#" + b64.EncodeToString(fileKey)
+	fmt.Fprintf(a.out, "Link: %s\n", link)
+	if *withPassword {
+		fmt.Fprintln(a.out, "The link alone does not open it: share the password another way.")
+	}
+	fmt.Fprintf(a.out, "It can be downloaded %d time(s) until %s.\n", *downloads, up.ExpiresAt.Local().Format("2 Jan 2006 15:04"))
+	fmt.Fprintf(a.out, "To delete it sooner: zarf delete %s %s\n", c.base.String()+"/d/"+up.ID, up.DeleteToken)
+	return nil
+}
+
+// upload is the server's answer to a new upload: where and with which tokens to send it.
+type upload struct {
+	ID          string    `json:"id"`
+	UploadToken string    `json:"upload_token"`
+	DeleteToken string    `json:"delete_token"`
+	PartSize    int64     `json:"part_size"`
+	ExpiresAt   time.Time `json:"expires_at"`
+}
+
+// uploadParts sends the encrypted file part by part and completes the upload. A failed part
+// is retried; if the server reports missing parts at the end, those are sent once more.
+func (c *client) uploadParts(ctx context.Context, tmp *os.File, size int64, up upload) error {
 	if up.PartSize <= 0 {
 		return errors.New("the server sent a bad part size")
 	}
-
 	parts := (size + up.PartSize - 1) / up.PartSize
 	bar := c.newProgress("Uploading", size)
 	sendPart := func(n int64) error {
@@ -149,11 +179,10 @@ func (a *app) send(args []string) error {
 		}
 		bar.add(min(up.PartSize, size-n*up.PartSize))
 	}
-	// If the server missed a part, it names it; send those again once.
 	var missing struct {
 		Received []int64 `json:"received"`
 	}
-	err = c.call(ctx, "POST", "/uploads/"+up.ID+"/complete", up.UploadToken, nil, nil)
+	err := c.call(ctx, "POST", "/uploads/"+up.ID+"/complete", up.UploadToken, nil, nil)
 	var api *apiError
 	if errors.As(err, &api) && api.Code == "missing_parts" {
 		if err := c.call(ctx, "GET", "/uploads/"+up.ID, up.UploadToken, nil, &missing); err != nil {
@@ -172,18 +201,7 @@ func (a *app) send(args []string) error {
 		}
 		err = c.retry(ctx, func() error { return c.call(ctx, "POST", "/uploads/"+up.ID+"/complete", up.UploadToken, nil, nil) })
 	}
-	if err != nil {
-		return err
-	}
-
-	link := c.base.String() + "/d/" + up.ID + "#" + b64.EncodeToString(fileKey)
-	fmt.Fprintf(a.out, "Link: %s\n", link)
-	if *withPassword {
-		fmt.Fprintln(a.out, "The link alone does not open it: share the password another way.")
-	}
-	fmt.Fprintf(a.out, "It can be downloaded %d time(s) until %s.\n", *downloads, up.ExpiresAt.Local().Format("2 Jan 2006 15:04"))
-	fmt.Fprintf(a.out, "To delete it sooner: zarf delete %s %s\n", c.base.String()+"/d/"+up.ID, up.DeleteToken)
-	return nil
+	return err
 }
 
 // parseLink splits https://host/d/<id>#<key> into the server, the id and the key.
@@ -209,8 +227,18 @@ func (a *app) receive(args []string) error {
 	fs := flag.NewFlagSet("receive", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 	dir := fs.String("d", ".", "")
-	if err := fs.Parse(reorder(args)); err != nil || fs.NArg() != 1 {
-		return usageError{"usage: zarf receive LINK [-d DIR]"}
+	yes := fs.Bool("y", false, "")
+	serverOpt := serverFlag(fs)
+	if err := fs.Parse(reorder(args, "y")); err != nil || fs.NArg() != 1 {
+		return usageError{"usage: zarf receive LINK [-d DIR]\n       zarf receive CODE [-d DIR] [-y]"}
+	}
+	// A code like 7-apple-tower, not a link: live mode.
+	if !strings.Contains(fs.Arg(0), "/") {
+		code, err := words.Parse(fs.Arg(0))
+		if err != nil {
+			return err
+		}
+		return a.receiveLive(*serverOpt, code, *dir, *yes)
 	}
 	server, id, fileKey, err := parseLink(fs.Arg(0))
 	if err != nil {

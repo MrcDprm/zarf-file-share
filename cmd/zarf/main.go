@@ -23,6 +23,17 @@ Usage:
                                        upload FILE (1024 MB at most) and print its link
   zarf receive LINK [-d DIR]           download and decrypt a file from a link
   zarf delete LINK DELETE-CODE         delete a sent file before it expires
+
+  zarf send --to REQUEST-LINK FILE     upload FILE for the person who sent you a request link
+  zarf request new [--note TEXT] [--expires 1h|1d|7d] [--uploads 1|5|10|20]
+                                       ask someone for files; prints a request link
+  zarf request list                    your requests and what has arrived
+  zarf request get ID [-d DIR]         download and open what arrived
+  zarf request close ID                close a request and delete what arrived
+
+  zarf send --code FILE                send to someone right now: prints a short code
+  zarf receive CODE [-d DIR] [-y]      receive with a code, like 7-apple-tower
+
   zarf encrypt [-p] [-o OUT] FILE      encrypt FILE into FILE.zarf locally and print its key
   zarf decrypt [--key KEY] [-d DIR] FILE.zarf
   zarf version
@@ -33,22 +44,25 @@ Options:
   --downloads    how many times it can be downloaded (default 1)
   --server URL   the Zarf server (default https://zarf.miracdeprem.com, or $ZARF_SERVER)
   -d DIR         folder for received files; existing files are never overwritten
+  -y             accept a file sent with a code without asking
   -o OUT         where to write the encrypted file
   --key KEY      the key, or the whole link; asked for when left out
 `
 
 // app holds what a command talks to, so tests can run commands without a terminal.
 type app struct {
-	in       *bufio.Reader
-	out      io.Writer
-	errOut   io.Writer
-	secret   func(prompt string) (string, error) // reads a key or password without showing it
-	progress io.Writer                           // progress lines; nil when not a terminal
+	in        *bufio.Reader
+	out       io.Writer
+	errOut    io.Writer
+	secret    func(prompt string) (string, error) // reads a key or password without showing it
+	progress  io.Writer                           // progress lines; nil when not a terminal
+	configDir func() (string, error)              // where requests' keys are kept
 }
 
 func main() {
 	a := &app{in: bufio.NewReader(os.Stdin), out: os.Stdout, errOut: os.Stderr, progress: terminalProgress()}
 	a.secret = a.terminalSecret
+	a.configDir = os.UserConfigDir
 	os.Exit(a.run(os.Args[1:]))
 }
 
@@ -63,6 +77,8 @@ func (a *app) run(args []string) int {
 		err = a.send(args[1:])
 	case "receive":
 		err = a.receive(args[1:])
+	case "request":
+		err = a.request(args[1:])
 	case "delete":
 		err = a.remove(args[1:])
 	case "encrypt":
