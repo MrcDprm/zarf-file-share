@@ -98,7 +98,7 @@ padded  = meta || 0x80 || 0x00 ... up to a multiple of 1024 bytes
 meta_ct = AES-256-GCM-Seal(meta_key, 0^12, padded, aad = hh)
 ```
 
-The nonce can be zero because `meta_key` is used exactly once. Padding hides the exact length of file names. With several files, the sender packs them into one ZIP archive without compression (`"zip": true`) and lists them in `files`; the content is that archive.
+The JSON is written in one canonical form, so every implementation produces the same bytes: the fields in the order shown (`type` left out when empty), no spaces or line breaks, and no escaping beyond what JSON requires (`<`, `>` and `&` stay as they are). The nonce can be zero because `meta_key` is used exactly once. Padding hides the exact length of file names. With several files, the sender packs them into one ZIP archive without compression (`"zip": true`) and lists them in `files`; the content is that archive.
 
 Names are data, never paths: readers keep only the last path component, drop control characters, `/`, `\`, `..` and leading dots, and never overwrite an existing file without asking.
 
