@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { LiveError, Pipe, handshake, receiveFile, sendFile, type SocketLike } from "../src/lib/live.ts";
+import { LiveError, Pipe, choosePath, handshake, receiveFile, sendFile, type SocketLike } from "../src/lib/live.ts";
 import { concat } from "../src/lib/bytes.ts";
 import type { Code } from "../src/lib/words.ts";
 
@@ -39,7 +39,7 @@ class FakeSocket implements SocketLike {
   binaryType = "blob";
   bufferedAmount = 0;
   onmessage: ((e: { data: unknown }) => void) | null = null;
-  onclose: ((e: { code: number }) => void) | null = null;
+  onclose: ((e: { code?: number }) => void) | null = null;
   private open = true;
   private readonly relay: Relay;
   constructor(relay: Relay) {
@@ -72,7 +72,10 @@ async function run(relay: Relay, senderCode: Code, receiverCode: Code, accept = 
   const b = new Pipe(relay.socket());
   const sending = (async () => {
     try {
-      await sendFile(a, await handshake(a, "send", senderCode, "token"), file, () => {}, () => {});
+      const session = await handshake(a, "send", senderCode, "token");
+      const path = await choosePath(a, session, null); // no WebRTC in Node: the relay path
+      assert.equal(path.direct, false);
+      await sendFile(path.pipe, session.ikm, file, () => {}, () => {});
       return "sent";
     } catch (err) {
       a.close();
@@ -81,8 +84,9 @@ async function run(relay: Relay, senderCode: Code, receiverCode: Code, accept = 
   })();
   const receiving = (async () => {
     try {
-      const got = await receiveFile(b, await handshake(b, "receive", receiverCode), async () => accept, () => {});
-      return got;
+      const session = await handshake(b, "receive", receiverCode);
+      const path = await choosePath(b, session, null);
+      return await receiveFile(path.pipe, session.ikm, async () => accept, () => {});
     } catch (err) {
       b.close();
       return (err as LiveError).problem;

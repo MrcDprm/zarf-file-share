@@ -2,7 +2,7 @@
 // receiver types it in the same tab, sees the file's name and size, and accepts.
 
 import { createLive, liveSocketURL, ApiError } from "./lib/api.ts";
-import { LiveError, Pipe, handshake, receiveFile, sendFile, type SocketLike } from "./lib/live.ts";
+import { LiveError, Pipe, choosePath, handshake, receiveFile, sendFile, type Path, type PeerFactory, type SocketLike } from "./lib/live.ts";
 import { formatCode, parseCode, type Code } from "./lib/words.ts";
 import { safeName } from "./lib/safename.ts";
 import { saveFile, saveURL } from "./lib/upload.ts";
@@ -47,6 +47,10 @@ function connect(channel: number): Promise<Pipe> {
   });
 }
 
+// A direct connection uses this server's own STUN responder (UDP 3478), never a third party's.
+const peerFactory: PeerFactory =
+  typeof RTCPeerConnection === "function" ? () => new RTCPeerConnection({ iceServers: [{ urls: `stun:${location.hostname}:3478` }] }) : null;
+
 // --- sending ---
 
 let sending: { pipe: Pipe | null; code: Code | null; file: File } | null = null;
@@ -66,7 +70,7 @@ function sendDone(): void {
 async function startSending(f: File): Promise<void> {
   if (f.size === 0) return say("send", "err.empty_file", undefined, "error");
   if (f.size > MAX_FILE) return say("send", "err.too_large", undefined, "error");
-  const me = { pipe: null as Pipe | null, code: null as Code | null, file: f };
+  const me = { pipe: null as Pipe | null, path: null as Path | null, code: null as Code | null, file: f };
   sending = me;
   $("[data-live-start]").hidden = true;
   $("[data-live-file-name]").textContent = `${f.name} (${formatSize(f.size)})`;
@@ -86,26 +90,29 @@ async function startSending(f: File): Promise<void> {
     $("[data-live-cancel]").hidden = false;
     say("send", "live.waiting");
     // handshake() waits for the receiver; "start" arrives when they join.
-    const waitStart = handshake(pipe, "send", code, token);
-    const ikm = await waitStart;
-    say("send", "live.offered");
+    const session = await handshake(pipe, "send", code, token);
     $("[data-live-cancel]").hidden = true;
+    say("send", "live.path");
+    const path = await choosePath(pipe, session, peerFactory);
+    me.path = path;
+    const sendingKey: Key = path.direct ? "live.sending.direct" : "live.sending.relay";
     await sendFile(
-      pipe,
-      ikm,
+      path.pipe,
+      session.ikm,
       f,
       () => say("send", "live.offered"),
       (done, total) => {
         const p = Math.floor((done / total) * 100);
-        say("send", "live.sending", { p }, "sealed");
+        say("send", sendingKey, { p }, "sealed");
         progress("send", p);
       },
     );
     progress("send", null);
-    say("send", "live.sent", { name: f.name }, "sealed");
-    pipe.close();
+    say("send", path.direct ? "live.sent.direct" : "live.sent.relay", { name: f.name }, "sealed");
+    path.close();
   } catch (err) {
     progress("send", null);
+    me.path?.close();
     me.pipe?.close();
     if (sending === me) say("send", problemKey(err, "send"), undefined, "error"); // not when cancelled
   } finally {
@@ -136,12 +143,16 @@ async function startReceiving(text: string): Promise<void> {
   $("[data-live-save]").hidden = true;
   say("receive", "live.connecting");
   let pipe: Pipe | null = null;
+  let path: Path | null = null;
   try {
     pipe = await connect(parsed.channel);
-    const ikm = await handshake(pipe, "receive", parsed);
-    const got = await receiveFile(pipe, ikm, decide, (done, total) => {
+    const session = await handshake(pipe, "receive", parsed);
+    say("receive", "live.path");
+    path = await choosePath(pipe, session, peerFactory);
+    const receivingKey: Key = path.direct ? "live.receiving.direct" : "live.receiving.relay";
+    const got = await receiveFile(path.pipe, session.ikm, decide, (done, total) => {
       const p = total ? Math.floor((done / total) * 100) : 100;
-      say("receive", "live.receiving", { p }, "sealed");
+      say("receive", receivingKey, { p }, "sealed");
       progress("receive", p);
     });
     progress("receive", null);
@@ -152,13 +163,14 @@ async function startReceiving(text: string): Promise<void> {
     const name = safeName(got.file.name);
     if (savedURL) URL.revokeObjectURL(savedURL.url);
     savedURL = { url: saveFile(got.parts, name), name };
-    say("receive", "live.received", undefined, "sealed");
+    say("receive", path.direct ? "live.received.direct" : "live.received.relay", undefined, "sealed");
     $("[data-live-save]").hidden = false;
     $<HTMLInputElement>("[data-live-code-input]").value = "";
   } catch (err) {
     progress("receive", null);
     say("receive", problemKey(err, "receive"), undefined, "error");
   } finally {
+    path?.close();
     pipe?.close();
     $("[data-live-offer]").hidden = true;
     $<HTMLButtonElement>("[data-live-connect]").disabled = false;

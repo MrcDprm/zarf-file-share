@@ -36,6 +36,8 @@ document.querySelectorAll<HTMLAnchorElement>("[data-mode], [data-mode-link]").fo
   }),
 );
 showMode(modeOfHash[location.hash] ?? "link");
+// Back and forward, or a hand-typed #kod, switch the tab too.
+addEventListener("hashchange", () => showMode(modeOfHash[location.hash] ?? "link"));
 
 
 $("[data-copy-command]").addEventListener("click", (e) => {

@@ -256,9 +256,57 @@
           <a href="https://github.com/MrcDprm/zarf-file-share/releases/latest">macOS</a>,
           <a href="https://github.com/MrcDprm/zarf-file-share/releases/latest">Linux</a>
         </p>
+        <div class="commands" aria-labelledby="commands-title">
+          <h3 id="commands-title" data-i18n="cmd.title">Komutlar</h3>
+          <p class="commands__lead" data-i18n="cmd.lead"></p>
+          <h4 class="commands__group" data-i18n="cmd.link">Link ile gönderme</h4>
+          <dl class="commands__list">
+            <div><dt><code data-i18n="cmd.send.code">zarf send rapor.pdf</code></dt><dd data-i18n="cmd.send">Dosyayı şifreler, yükler ve linkini yazar. -p bir de şifre sorar; --expires 1h, 1d ya da 7d ve --downloads 1, 5, 10 ya da 20 süreyi ve indirme sayısını belirler.</dd></div>
+            <div><dt><code data-i18n="cmd.receive.code">zarf receive LİNK</code></dt><dd data-i18n="cmd.receive">Linkteki dosyayı indirir, açar ve bulunduğun klasöre kaydeder; -d KLASÖR ile başka bir yere. Var olan bir dosyanın üzerine asla yazmaz.</dd></div>
+            <div><dt><code data-i18n="cmd.delete.code">zarf delete LİNK SİLME-KODU</code></dt><dd data-i18n="cmd.delete">Gönderdiğin dosyayı süresi dolmadan siler. Silme kodu, gönderirken ekrana yazılır.</dd></div>
+          </dl>
+          <h4 class="commands__group" data-i18n="cmd.request">Dosya isteme</h4>
+          <dl class="commands__list">
+            <div><dt><code data-i18n="cmd.request_new.code">zarf request new --note "vergi levhası"</code></dt><dd data-i18n="cmd.request_new">Dosya istemek için bir istek linki oluşturur. Gelenleri açan anahtar sadece bu bilgisayarda kalır.</dd></div>
+            <div><dt><code data-i18n="cmd.send_to.code">zarf send --to İSTEK-LİNKİ belge.pdf</code></dt><dd data-i18n="cmd.send_to">Sana gönderilen bir istek linkine dosya yükler; onu sadece isteyen kişi açabilir.</dd></div>
+            <div><dt><code data-i18n="cmd.request_list.code">zarf request list</code></dt><dd data-i18n="cmd.request_list">Bu bilgisayardaki isteklerini ve her birine kaç dosya geldiğini gösterir.</dd></div>
+            <div><dt><code data-i18n="cmd.request_get.code">zarf request get KİMLİK</code></dt><dd data-i18n="cmd.request_get">Bir isteğe gelen yeni dosyaları indirip açar. Kimliğin ilk birkaç harfi yeterli.</dd></div>
+            <div><dt><code data-i18n="cmd.request_close.code">zarf request close KİMLİK</code></dt><dd data-i18n="cmd.request_close">İsteği kapatır ve gelen dosyaları sunucudan siler.</dd></div>
+          </dl>
+          <h4 class="commands__group" data-i18n="cmd.live">Kodla gönderme</h4>
+          <dl class="commands__list">
+            <div><dt><code data-i18n="cmd.send_code.code">zarf send --code sunum.pptx</code></dt><dd data-i18n="cmd.send_code">Kısa bir kod yazar ve bekler; alıcı kodu girip kabul edince dosya gider.</dd></div>
+            <div><dt><code data-i18n="cmd.receive_code.code">zarf receive 7-elma-kule</code></dt><dd data-i18n="cmd.receive_code">Kodla gönderilen dosyayı alır. Önce adını ve boyutunu gösterip onay ister; -y ile sormadan alır.</dd></div>
+          </dl>
+          <h4 class="commands__group" data-i18n="cmd.local">Sunucusuz, bu bilgisayarda</h4>
+          <dl class="commands__list">
+            <div><dt><code data-i18n="cmd.encrypt.code">zarf encrypt rapor.pdf</code></dt><dd data-i18n="cmd.encrypt">Dosyayı hiçbir yere göndermeden rapor.pdf.zarf olarak şifreler ve açacak anahtarı yazar.</dd></div>
+            <div><dt><code data-i18n="cmd.decrypt.code">zarf decrypt rapor.pdf.zarf</code></dt><dd data-i18n="cmd.decrypt">Şifreli dosyayı anahtarıyla açar; anahtarı sorar, yazdıkların ekranda görünmez.</dd></div>
+          </dl>
+        </div>
       </section>
 
-      <footer class="foot"><span data-i18n="foot.text">Zarf açık kaynaklıdır.</span> <a href="https://github.com/MrcDprm/zarf-file-share" data-i18n="foot.link">Kaynak kodu GitHub'da.</a></footer>
+      <footer class="foot">
+        <p class="foot__note"><span data-i18n="foot.text">Zarf açık kaynaklıdır.</span></p>
+        <!-- Every live project links to the others; this one is marked as the current page. -->
+        <nav class="foot__projects" aria-label="Projelerim" data-i18n-aria="foot.projects">
+          <a href="https://zarf.miracdeprem.com" aria-current="page">Zarf</a>
+          <a href="https://spygame.miracdeprem.com">Casus</a>
+          <a href="https://seans.miracdeprem.com">Seans</a>
+          <a href="https://kvkk.miracdeprem.com">KVKK Assistant</a>
+          <a href="https://crypto.miracdeprem.com">Crypto Toolkit</a>
+          <a href="https://sahaf.miracdeprem.com">Sahaf</a>
+          <a href="https://tictactoe.miracdeprem.com">Tic-Tac-Toe</a>
+          <a href="https://hangman.miracdeprem.com">Hangman</a>
+          <a href="https://quiz.miracdeprem.com">Quiz App</a>
+          <a href="https://weather.miracdeprem.com">Weather App</a>
+        </nav>
+        <p class="foot__meta">
+          <span>© 2026 Miraç Deprem</span>
+          <a href="https://www.miracdeprem.com" data-i18n="foot.portfolio">Portfolyo</a>
+          <a href="https://github.com/MrcDprm/zarf-file-share" data-i18n="foot.source">Kaynak kodu</a>
+        </p>
+      </footer>
     </div>
 
     <!-- The carrier pigeon that takes a finished envelope away. Decorative only. -->

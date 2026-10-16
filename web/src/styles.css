@@ -510,6 +510,30 @@ legend {
 .foot a {
   color: inherit;
 }
+.foot p {
+  margin: 0;
+}
+.foot__projects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  margin: 0.75rem 0;
+}
+.foot__projects a {
+  text-decoration: none;
+}
+.foot__projects a:hover {
+  text-decoration: underline;
+}
+.foot__projects a[aria-current="page"] {
+  color: var(--ink);
+  font-weight: 650;
+}
+.foot__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+}
 
 @media (min-width: 40rem) {
   .page {
@@ -1056,4 +1080,47 @@ legend {
 }
 .live [data-live-save] {
   margin-top: 0.75rem;
+}
+
+/* --- the command reference: what each command does, in a sentence --- */
+.commands {
+  margin-top: 2rem;
+  max-width: 56rem;
+}
+.commands h3 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+.commands__lead {
+  margin: 0.35rem 0 0;
+  color: var(--ink-soft);
+}
+.commands__group {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 1rem;
+}
+.commands__list {
+  margin: 0;
+  border-top: 1px solid var(--rule);
+}
+.commands__list > div {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+@media (min-width: 48rem) {
+  .commands__list > div {
+    grid-template-columns: 22rem 1fr;
+    gap: 1.5rem;
+  }
+}
+.commands__list dt code {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.88rem;
+  overflow-wrap: anywhere;
+}
+.commands__list dd {
+  margin: 0;
+  color: var(--ink-soft);
 }
