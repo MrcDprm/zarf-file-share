@@ -29,7 +29,8 @@
 | A leaked link without its password opens the file | In password mode the key needs both the link key and the Argon2id output. |
 | Someone with only the id burns the download limit | Spending a download needs a value derived from the link key. |
 | Guessing ids or tokens | 128-bit random ids, 256-bit random tokens; only hashes of tokens are stored. |
-| The server, or the network, impersonates a peer in live mode | CPace: without the code there is one guess per attempt, and the channel closes after a failure. WebRTC setup messages are encrypted with the PAKE key, so the DTLS fingerprints cannot be swapped. |
+| The server, or the network, impersonates a peer in live mode | CPace: without the code there is one guess per channel, and the channel closes after a failure. Key confirmation detects a wrong code before any file byte is sent. |
+| Someone receives a file they did not want (live mode) | The receiver sees the name and size and accepts before any content is sent. |
 | A hostile header exhausts memory | Readers cap Argon2id parameters, chunk sizes and metadata length. |
 | A file name escapes the download folder (`../../x`) | Names are reduced to a bare, cleaned file name; existing files are never overwritten silently. |
 | Abuse of the service | Size, expiry and per-address limits, reporting and operator removal. |

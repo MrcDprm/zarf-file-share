@@ -14,7 +14,7 @@ Zarf invents no cryptographic primitive. Everything below is a composition of st
 | Key derivation | HKDF with SHA-256 | RFC 5869 |
 | Public-key agreement (request mode) | X25519 | RFC 7748 |
 | Password hashing (optional link password) | Argon2id | RFC 9106 |
-| Password-authenticated key exchange (live mode) | CPace over ristretto255 with SHA-512 | draft-irtf-cfrg-cpace |
+| Password-authenticated key exchange (live mode) | CPace over ristretto255 with SHA-512 | draft-irtf-cfrg-cpace-20 |
 | Hashing, commitments | SHA-256, HMAC-SHA-256 | FIPS 180-4, RFC 2104 |
 | Randomness | the platform CSPRNG (`crypto/rand`, `crypto.getRandomValues`) | |
 
@@ -115,39 +115,48 @@ Names are data, never paths: readers keep only the last path component, drop con
 
 ## 4. Request mode (asking someone for files)
 
-1. The requester has a long-term X25519 key pair `(req_priv, req_pub)`. In the browser the private key is a non-extractable Web Crypto key kept in IndexedDB; the CLI keeps it in `~/.config/zarf/identity` with permissions `0600`.
+1. For each request the requester draws a fresh X25519 key pair `(req_priv, req_pub)`. In the browser the private key is a non-extractable Web Crypto key, kept in that browser's IndexedDB together with the owner token; the request can be opened only there. A key per request means one lost or leaked key exposes one request, nothing else.
 2. The requester creates a request (section 6) and shares
    `https://<host>/r/<rid>#<b64u(req_pub)>`
+   The public key travels in the `#` part, so the server never handles it and cannot swap in a key of its own.
 3. The uploader draws an ephemeral key pair, computes
    `shared = X25519(eph_priv, req_pub)` (rejecting the all-zero result),
    `ikm = shared || eph_pub || req_pub`, mode `0x03`, `eph_pub` in the header,
    and uploads the envelope to the request.
 4. The requester recomputes `shared = X25519(req_priv, eph_pub)` and opens the envelope.
 
-Including both public keys in `ikm` binds the key to this exact pair, as HPKE does. Both sides can show a short *fingerprint* of `req_pub` (first 40 bits of SHA-256, as four words from the word list) to compare over another channel.
+Including both public keys in `ikm` binds the key to this exact pair, as HPKE does. Both pages show a short *fingerprint* of `req_pub`: the first 5 bytes of SHA-256(req_pub), each byte a position in the word list of section 5.1, so five words to compare over another channel when the link itself passed through hands that are not trusted.
+
+The request's *label* ("ID copy and tax certificate") is stored in plain text so the uploader's page can show it; the server can read it, and the interface says so. It is one line of at most 100 characters.
 
 ## 5. Live mode (send with a short code)
 
 ### 5.1 The code
 
-`<channel>-<word>-<word>`, for example `7-elma-kule` or `7-apple-tower`. `channel` is a number the server hands out (it only routes the two peers to each other). The two words carry 20 bits of secret: each is one of 1024 positions, written in Turkish or in English.
+`<channel>-<word>-<word>`, for example `7-elma-kule` or `7-apple-tower`. `channel` is a number the server hands out (it only routes the two peers to each other). The two words carry 16 bits of secret: each is one of 256 positions, written in Turkish or in English.
 
-- There are two word lists, `wordlist-tr.txt` and `wordlist-en.txt`, with 1024 short, ASCII-only words each (the Turkish list has no ç, ğ, ı, ö, ş or ü, so anyone can type it). Word *k* of one list means the same as word *k* of the other.
+- There are two word lists (`web/src/lib/words.ts`) with 256 short, ASCII-only words each (the Turkish list has no ç, ğ, ı, ö, ş or ü, so anyone can type it). Word *k* of one list means the same as word *k* of the other.
 - A code is shown in the sender's interface language, and the receiver may type either language, or even mix them: `7-elma-tower` is the same code as `7-apple-kule`.
 - What enters the PAKE is therefore the two **positions**, never the words. A word that appears in both lists must sit at the same position in both; a test checks this, so no word can mean two different positions.
 - Typing is forgiving: case is ignored, and spaces or dots work as separators.
 
-20 bits are enough because of the PAKE: an attacker gets one guess per connection attempt, and the server closes a channel after its first failed attempt.
+16 bits are enough because of the PAKE (magic-wormhole makes the same choice): an attacker gets exactly one guess per channel, because a channel serves a single session and closes for good when either side leaves. One guess in 65 536, and a failed guess is visible to the sender.
 
 ### 5.2 Messages
 
-Both peers open a WebSocket to `/api/v1/live/<channel>`. The server forwards each message to the other peer and nothing else. Messages are JSON text frames with a `t` (type) field, except content, which is binary.
+Both peers open a WebSocket to `/api/v1/live/<channel>`. Messages are JSON text frames with a `t` (type) field, except envelope bytes, which are binary frames of at most 1 MiB.
 
-1. **PAKE (CPace).** `PRS = "zarf v1 live" || uint16(position_1) || uint16(position_2)`, channel identifier `CI = channel`, session id `sid` = 16 random bytes sent by the server to both peers. Each side sends `{"t":"pake","y":b64u(Y)}`; both derive `ISK`.
-2. **Key confirmation.** `confirm_key = HKDF(sid, ISK, "zarf v1 confirm", 32)`. The sender sends `HMAC(confirm_key, "sender" || Ya || Yb)`, the receiver `HMAC(confirm_key, "receiver" || Ya || Yb)`. A wrong value aborts and tells the server, which closes the channel for good.
-3. **Direct connection.** `signal_key = HKDF(sid, ISK, "zarf v1 signal", 32)`. WebRTC offers, answers and ICE candidates are sent through the relay *encrypted* with `signal_key` (AES-256-GCM, counter nonces per direction). Because the SDP carries the DTLS certificate fingerprints, the server cannot slip itself into the direct connection.
-4. **Transfer.** `ikm = HKDF(sid, ISK, "zarf v1 live content", 32)`, mode `0x04`. The envelope goes over the WebRTC data channel; if no direct connection is up within 10 seconds, it goes through the WebSocket relay instead. Content is encrypted end to end either way, so the fallback changes speed, not security.
-5. The receiver acknowledges the last chunk; both sides close.
+1. **Joining.** The sender's first message is `{"t":"join","role":"send","token":<b64u>}` with the token from `POST /live`; the receiver's is `{"t":"join","role":"receive"}`. When both are in, the server sends both `{"t":"start","sid":<b64u, 16 random bytes>}`. From then on it forwards every message to the other peer unchanged, and nothing else.
+2. **PAKE.** CPace (draft-irtf-cfrg-cpace-20) with ristretto255 and SHA-512, initiator/responder transcript (`transcript_ir`), the sender as initiator A:
+   `PRS = "zarf v1 live" || uint16(position_1) || uint16(position_2)`, `CI = lv_cat("zarf v1 live", channel as decimal ASCII)`, `ADa = "send"`, `ADb = "receive"`.
+   Each side sends `{"t":"pake","y":b64u(Y)}` and derives the 64-byte `ISK`. An invalid or identity point aborts.
+3. **Key confirmation.** `confirm_key = HKDF(salt = sid, ikm = ISK, "zarf v1 confirm", 32)`. The sender sends `{"t":"confirm","mac":b64u(HMAC-SHA-256(confirm_key, "send" || Ya || Yb))}`, the receiver the same with `"receive"`. A wrong value means a wrong code (or an attacker's guess): that side closes, and the channel is gone.
+4. **Offer.** `ikm = HKDF(salt = sid, ikm = ISK, "zarf v1 live content", 32)`, mode `0x04`. The sender sends the first part of the envelope, `header || meta_ct`, as one binary message. The receiver opens the metadata, shows the file's name and size, and answers `{"t":"accept"}` or `{"t":"decline"}`, so nobody receives a file they did not agree to.
+5. **Transfer.** After `accept` the sender sends the encrypted chunks as binary messages, then `{"t":"done"}`. The receiver verifies the last chunk, answers `{"t":"received"}`, and both close.
+
+The bytes always go through the server's relay in this version. They are encrypted end to end either way, so the relay sees only sizes and timing. A direct WebRTC connection (signalling encrypted with a key derived from `ISK`) is planned; it would change speed, not security.
+
+The server closes a channel when either side leaves, after 10 minutes without a receiver, after 2 hours in total, or when more than 1100 MB have passed through it.
 
 ## 6. Server API
 
@@ -171,11 +180,18 @@ All paths start with `/api/v1`. Bodies are JSON unless noted. Errors are `{"erro
 
 | Method and path | Purpose |
 |---|---|
-| `POST /requests` `{label, expires_in, max_uploads}` | Returns `{rid, owner_token}`. |
-| `POST /requests/{rid}/uploads` | Same as `POST /uploads`, attached to the request. |
-| `GET /requests/{rid}` (owner token) | The uploads received so far. |
+| `POST /requests` `{label, expires_in, max_uploads}` | Returns `{rid, owner_token, expires_at}`. |
+| `GET /requests/{rid}` | `{label, expires_at, uploads_left}` for the uploader's page. With the owner token it also lists the finished uploads: `files: [{id, size, created_at, downloads_left}]`. `404` / `410` as for files. |
+| `POST /requests/{rid}/uploads` `{size}` | Like `POST /uploads`; the file inherits the request's expiry. Refused with `410` when the request expired or has all its uploads. Then the same `parts` and `complete` calls. |
+| `POST /requests/{rid}/files/{id}/download` (owner token) | Spend one of the file's 20 downloads; returns a `ticket` for `GET /files/{id}/content`. |
+| `DELETE /requests/{rid}` (owner token) | Close the request and delete what was uploaded to it. |
 
-**Live**: `POST /live` returns `{channel}`; `GET /live/{channel}` upgrades to the WebSocket of section 5.
+**Live**
+
+| Method and path | Purpose |
+|---|---|
+| `POST /live` | Returns `{channel, token}`; the token lets only the creator take the sender's place. |
+| `GET /live/{channel}` | Upgrades to the WebSocket of section 5.2. |
 
 ## 7. Limits of the public instance
 
@@ -185,7 +201,8 @@ All paths start with `/api/v1`. Bodies are JSON unless noted. Errors are `{"erro
 | Expiry | 1 hour, 1 day or 7 days |
 | Downloads per link | 1, 5, 10 or 20 |
 | Uploads per address | 20 per hour |
-| Live relay | 1024 MB per transfer, one transfer per channel |
+| Requests | up to 1, 5, 10 or 20 uploads; each upload can be downloaded 20 times |
+| Live relay | 1100 MB per channel, one transfer per channel, 2 hours at most |
 | Storage in total | 100 GB; new uploads are refused when full |
 
 Self-hosters change these in the server's configuration.
