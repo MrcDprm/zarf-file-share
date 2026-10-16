@@ -8,7 +8,8 @@ coverage.*
 
 # Web client
 web/node_modules/
-web/dist/
+web/dist/*
+!web/dist/.gitkeep
 
 # Local data (uploaded ciphertext, database)
 /data/

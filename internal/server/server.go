@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"io/fs"
 	"net"
 	"net/http"
 	"os"
@@ -30,7 +31,9 @@ type Config struct {
 	// TrustProxy takes the client address from X-Forwarded-For, but only when the request
 	// comes from this machine (the reverse proxy in front). Anyone else could forge it.
 	TrustProxy bool
-	Now        func() time.Time
+	// Web is the built interface; nil serves only the API.
+	Web fs.FS
+	Now func() time.Time
 }
 
 // DefaultConfig is the public instance: 1024 MB per file, 100 GB in total.
@@ -74,10 +77,19 @@ func New(cfg Config) (*Server, error) {
 
 func (s *Server) Close() error { return s.store.close() }
 
+// HasWeb reports whether the pages are served too.
+func (s *Server) HasWeb() bool { return s.cfg.Web != nil }
+
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h := w.Header()
 	h.Set("X-Content-Type-Options", "nosniff")
-	h.Set("Referrer-Policy", "no-referrer")
+	h.Set("Referrer-Policy", "no-referrer")  // a link's path must not leak to other sites
+	h.Set("Content-Security-Policy", apiCSP) // pages replace it with their own
+	h.Set("X-Frame-Options", "DENY")
+	h.Set("Cross-Origin-Opener-Policy", "same-origin")
+	h.Set("Cross-Origin-Resource-Policy", "same-origin")
+	h.Set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=()")
+	h.Set("Strict-Transport-Security", "max-age=31536000") // browsers heed it over HTTPS only
 	s.mux.ServeHTTP(w, r)
 }
 
@@ -87,6 +99,9 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("GET /api/v1/uploads/{id}", s.uploadStatus)
 	s.mux.HandleFunc("POST /api/v1/uploads/{id}/complete", s.completeUpload)
 	s.downloadRoutes()
+	if s.cfg.Web != nil {
+		s.webRoutes()
+	}
 }
 
 // --- small helpers ---

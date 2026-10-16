@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/MrcDprm/zarf-file-share/internal/server"
+	"github.com/MrcDprm/zarf-file-share/web"
 )
 
 var version = "dev"
@@ -50,6 +51,7 @@ func main() {
 	}
 	cfg := server.DefaultConfig(*data)
 	cfg.TrustProxy = *trustProxy
+	cfg.Web = web.Files()
 	s, err := server.New(cfg)
 	if err != nil {
 		log.Fatalf("zarf-server: %v", err)
@@ -116,6 +118,9 @@ func serve(s *server.Server, addr string) error {
 	errc := make(chan error, 1)
 	go func() { errc <- hs.ListenAndServe() }()
 	log.Printf("zarf-server %s listening on %s", version, addr)
+	if !s.HasWeb() {
+		log.Print("zarf-server: the web interface is not built (cd web && npm run build); serving the API only")
+	}
 
 	select {
 	case err := <-errc:
