@@ -151,14 +151,23 @@ Both peers open a WebSocket to `/api/v1/live/<channel>`. Messages are JSON text 
    `PRS = "zarf v1 live" || uint16(position_1) || uint16(position_2)`, `CI = lv_cat("zarf v1 live", channel as decimal ASCII)`, `ADa = "send"`, `ADb = "receive"`.
    Each side sends `{"t":"pake","y":b64u(Y)}` and derives the 64-byte `ISK`. An invalid or identity point aborts.
 3. **Key confirmation.** `confirm_key = HKDF(salt = sid, ikm = ISK, "zarf v1 confirm", 32)`. The sender sends `{"t":"confirm","mac":b64u(HMAC-SHA-256(confirm_key, "send" || Ya || Yb))}`, the receiver the same with `"receive"`. A wrong value means a wrong code (or an attacker's guess): that side closes, and the channel is gone.
-4. **Offer.** `ikm = HKDF(salt = sid, ikm = ISK, "zarf v1 live content", 32)`, mode `0x04`. The sender sends the first part of the envelope, `header || meta_ct`, as one binary message. The receiver opens the metadata, shows the file's name and size, and answers `{"t":"accept"}` or `{"t":"decline"}`, so nobody receives a file they did not agree to.
-5. **Transfer.** After `accept` the sender sends the encrypted chunks as binary messages, then `{"t":"done"}`. The receiver verifies the last chunk, answers `{"t":"received"}`, and both close.
+4. **Path.** Each side sends `{"t":"hello","direct":true|false}`: whether it can open a direct WebRTC connection (browsers can; the command line tool says `false`). If both can:
+   - `signal_key = HKDF(salt = sid, ikm = ISK, "zarf v1 signal", 32)`.
+   - The sender creates a peer connection with one ordered, reliable data channel named `zarf`, and the two sides exchange the offer, the answer and their ICE candidates as `{"t":"signal","c":b64u(AES-256-GCM(signal_key, nonce, JSON))}`. The nonce is one byte for the direction (`0x01` sender, `0x02` receiver) and an 11-byte counter, so no nonce repeats. Because the SDP carries the DTLS certificate fingerprints and the server cannot forge or read these messages, it cannot place itself inside the direct connection.
+   - The ICE servers are the Zarf server's own STUN responder (UDP port 3478 on the same host), so no third party learns anyone's address.
+   - If the data channel opens within 10 seconds, the sender sends `{"t":"path","via":"direct"}` over the relay, and every following message travels on the data channel. Otherwise it sends `{"t":"path","via":"relay"}` and everything stays on the relay.
+   When either side cannot, the sender sends `{"t":"path","via":"relay"}` at once.
+5. **Offer.** `ikm = HKDF(salt = sid, ikm = ISK, "zarf v1 live content", 32)`, mode `0x04`. The sender sends the first part of the envelope, `header || meta_ct`, as one binary message. The receiver opens the metadata, shows the file's name and size, and answers `{"t":"accept"}` or `{"t":"decline"}`, so nobody receives a file they did not agree to.
+6. **Transfer.** After `accept` the sender sends the encrypted chunks as binary messages, then `{"t":"done"}`. The receiver verifies the last chunk, answers `{"t":"received"}`, and both close.
 
-The bytes always go through the server's relay in this version. They are encrypted end to end either way, so the relay sees only sizes and timing. A direct WebRTC connection (signalling encrypted with a key derived from `ISK`) is planned; it would change speed, not security.
+The envelope is encrypted end to end on either path; the path changes speed, not security. On the relay the server sees only sizes and timing. On a direct connection the two peers see each other's network addresses, which is why the ICE exchange starts only after key confirmation: someone without the code never learns them.
 
 The server closes a channel when either side leaves, after 10 minutes without a receiver, after 2 hours in total, or when more than 1100 MB have passed through it.
 
 ## 6. Server API
+
+The server also answers STUN binding requests (RFC 8489, the binding method only) on UDP port 3478, for the direct connections of section 5.2.
+
 
 All paths start with `/api/v1`. Bodies are JSON unless noted. Errors are `{"error": "<code>"}` with a fitting status. IDs are 16 random bytes in `b64u` (22 characters); secrets returned once are 32 random bytes in `b64u`, and the server stores only their SHA-256.
 
@@ -192,6 +201,10 @@ All paths start with `/api/v1`. Bodies are JSON unless noted. Errors are `{"erro
 |---|---|
 | `POST /live` | Returns `{channel, token}`; the token lets only the creator take the sender's place. |
 | `GET /live/{channel}` | Upgrades to the WebSocket of section 5.2. |
+
+## 6.1 The command line
+
+The `zarf` tool speaks the same protocol for every mode: `zarf send` and `zarf receive` for links, `zarf send --to <request link>` to answer a request, `zarf request` to create, list, fetch and close requests (the private key is kept in the user's configuration folder with owner-only permissions), and `zarf send --code` / `zarf receive <code>` for live mode, always over the relay.
 
 ## 7. Limits of the public instance
 
