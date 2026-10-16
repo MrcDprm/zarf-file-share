@@ -61,6 +61,15 @@
   box-sizing: border-box;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 /* "hidden" always wins over a component's own display value. */
 [hidden] {
   display: none !important;
@@ -297,7 +306,6 @@ h1 {
   z-index: 1;
   background: var(--envelope);
   transform: translateX(-101%);
-  transition: transform 700ms cubic-bezier(0.65, 0, 0.35, 1);
 }
 .window__cover::after {
   content: "";
@@ -307,8 +315,10 @@ h1 {
   -webkit-mask: url(./tint.svg) repeat;
   mask: url(./tint.svg) repeat;
 }
+/* The transition belongs to sealing only, so nothing slides while the page loads or resets. */
 .is-sealed .window__cover {
   transform: none;
+  transition: transform 700ms cubic-bezier(0.65, 0, 0.35, 1);
 }
 .status {
   margin: 0.9rem 0 0;
@@ -317,6 +327,9 @@ h1 {
 }
 .status--sealed {
   color: var(--seal);
+}
+.status--error {
+  color: var(--error);
 }
 .progress {
   height: 3px;
@@ -436,6 +449,9 @@ legend {
 }
 .button:hover {
   background: var(--blue-press);
+}
+[data-chosen] .pick {
+  margin-left: 0.6rem;
 }
 .pick {
   font: inherit;
@@ -572,6 +588,13 @@ legend {
   text-decoration: underline;
   text-underline-offset: 0.2em;
   cursor: pointer;
+}
+.log__empty {
+  margin: 0;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink-soft);
 }
 .log__foot {
   margin: 0.6rem 0 0;
@@ -776,6 +799,14 @@ legend {
 .receipt__terms {
   margin: 0;
   color: var(--ink-soft);
+}
+.receipt .pick {
+  justify-self: start;
+  margin-top: 0.5rem;
+}
+.button:disabled {
+  opacity: 0.6;
+  cursor: progress;
 }
 .has-parcel .parcel {
   opacity: 1;

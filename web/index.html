@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Zarf: dosyanı sadece alıcı açabilsin</title>
     <meta name="description" content="Dosyalar bu cihazda şifrelenir; sunucu içeriği göremez. Link ile, istek linkiyle ya da kısa bir kodla gönder." />
+    <meta name="referrer" content="no-referrer" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/src/styles.css" />
+
   </head>
   <body>
     <div class="page">
@@ -18,8 +19,8 @@
           </svg>
           Zarf
         </a>
-        <button type="button" class="icon-btn" data-lang lang="en" aria-label="Switch to English">EN</button>
-        <button type="button" class="icon-btn" data-theme-toggle aria-label="Temayı değiştir">
+        <button type="button" class="icon-btn" data-lang data-i18n="lang.code" data-i18n-aria="lang.switch">EN</button>
+        <button type="button" class="icon-btn" data-theme-toggle data-i18n-aria="theme.toggle" aria-label="Temayı değiştir">
           <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" /></svg>
           <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
         </button>
@@ -27,38 +28,50 @@
 
       <div class="layout">
         <main class="main">
-          <nav class="modes" aria-label="Gönderme yolu">
-            <a class="mode" href="#link" aria-current="page" data-mode="link">Link ile gönder</a>
-            <a class="mode" href="#iste" data-mode="request">Dosya iste</a>
-            <a class="mode" href="#kod" data-mode="live">Kodla gönder</a>
+          <nav class="modes" data-i18n-aria="modes.label" aria-label="Gönderme yolu">
+            <a class="mode" href="#link" aria-current="page" data-mode="link" data-i18n="mode.link">Link ile gönder</a>
+            <a class="mode" href="#iste" data-mode="request" data-i18n="mode.request">Dosya iste</a>
+            <a class="mode" href="#kod" data-mode="live" data-i18n="mode.live">Kodla gönder</a>
           </nav>
 
           <!-- Link mode -->
           <section data-panel="link">
-            <h1>Dosyayı sadece alıcının açabileceği şekilde gönder.</h1>
+            <h1 data-i18n="link.title">Dosyayı sadece alıcının açabileceği şekilde gönder.</h1>
 
-            <form class="send" data-send>
+            <form class="send" data-send novalidate>
+              <input type="file" class="visually-hidden" tabindex="-1" data-file-input />
               <div class="envelope" data-envelope>
                 <div class="flap" aria-hidden="true"></div>
                 <div class="window" data-window>
-                  <p class="window__prompt">Dosyayı buraya bırak</p>
-                  <p class="window__hint">ya da <button type="button" class="pick">bilgisayardan seç</button>. En fazla 1024 MB.</p>
+                  <div data-empty>
+                    <p class="window__prompt" data-i18n="drop.prompt">Dosyayı buraya bırak</p>
+                    <p class="window__hint">
+                      <span data-i18n="drop.or">ya da</span>
+                      <button type="button" class="pick" data-pick data-i18n="drop.pick">bilgisayardan seç</button>.
+                      <span data-i18n="drop.limit">En fazla 1024 MB.</span>
+                    </p>
+                  </div>
+                  <div data-chosen hidden>
+                    <p class="window__name" data-file-name></p>
+                    <p class="window__hint"><span data-file-meta></span> <button type="button" class="pick" data-pick data-i18n="drop.change">Başka dosya seç</button></p>
+                  </div>
                   <div class="window__cover" aria-hidden="true"></div>
                 </div>
                 <p class="status" data-status role="status"></p>
+                <div class="progress" data-progress hidden><span></span></div>
               </div>
 
-              <div class="choices">
+              <div class="choices" data-choices>
                 <fieldset>
-                  <legend>Link ne kadar süre açık kalsın?</legend>
+                  <legend data-i18n="expires.legend">Link ne kadar süre açık kalsın?</legend>
                   <div class="options">
-                    <label class="option"><input type="radio" name="expires" value="3600" /><span>1 saat</span></label>
-                    <label class="option"><input type="radio" name="expires" value="86400" checked /><span>1 gün</span></label>
-                    <label class="option"><input type="radio" name="expires" value="604800" /><span>7 gün</span></label>
+                    <label class="option"><input type="radio" name="expires" value="3600" /><span data-i18n="expires.1h">1 saat</span></label>
+                    <label class="option"><input type="radio" name="expires" value="86400" checked /><span data-i18n="expires.1d">1 gün</span></label>
+                    <label class="option"><input type="radio" name="expires" value="604800" /><span data-i18n="expires.7d">7 gün</span></label>
                   </div>
                 </fieldset>
                 <fieldset>
-                  <legend>Kaç kez indirilebilsin?</legend>
+                  <legend data-i18n="downloads.legend">Kaç kez indirilebilsin?</legend>
                   <div class="options">
                     <label class="option"><input type="radio" name="downloads" value="1" checked /><span>1</span></label>
                     <label class="option"><input type="radio" name="downloads" value="5" /><span>5</span></label>
@@ -67,111 +80,106 @@
                   </div>
                 </fieldset>
                 <div class="password">
-                  <label class="check"><input type="checkbox" data-use-password /> Bir de şifreyle koru</label>
-                  <input class="field" type="password" autocomplete="new-password" placeholder="En az 8 karakter" aria-label="Şifre" hidden data-password />
+                  <label class="check"><input type="checkbox" data-use-password /> <span data-i18n="password.check">Bir de şifreyle koru</span></label>
+                  <input class="field" type="password" autocomplete="new-password" minlength="8" data-i18n-placeholder="password.placeholder" data-i18n-aria="password.label" hidden data-password />
                 </div>
               </div>
 
               <section class="receipt" hidden data-receipt aria-live="polite">
-                <p class="receipt__done">Müşteri sözleşmesi, imzalı.pdf yola çıktı.</p>
-                <h2>Linki alıcıya ilet</h2>
+                <p class="receipt__done" data-receipt-done></p>
+                <h2 data-i18n="receipt.title">Linki alıcıya ilet</h2>
                 <div class="link-row">
-                  <p class="link">https://zarf.miracdeprem.com/d/Tm3w1UXFunZSmuRpr8k7iw#dBiOa8WHP3VbIglwVf4kiHXPJoZYFyG0X7H9ZJs-GjQ</p>
-                  <button type="button" class="button">Kopyala</button>
+                  <p class="link" data-link></p>
+                  <button type="button" class="button" data-copy-link data-i18n="receipt.copy">Kopyala</button>
                 </div>
-                <p class="receipt__terms">17 Ekim 21:03'e kadar açık, 1 kez indirilebilir. Daha önce silmek istersen silme kodun: TCXySuFC5qrj02UL</p>
+                <p class="receipt__terms" data-receipt-terms></p>
+                <p class="receipt__terms" data-receipt-password hidden data-i18n="receipt.password"></p>
+                <button type="button" class="pick" data-again data-i18n="receipt.again">Başka bir dosya gönder</button>
               </section>
 
-              <button type="submit" class="button" data-submit>Şifrele ve yükle</button>
-              <p class="note">Dosya bu cihazda şifrelenir. Anahtar linkin # işaretinden sonraki kısmında kalır; sunucu dosyayı göremez.</p>
+              <button type="submit" class="button" data-submit data-i18n="send.button">Şifrele ve yükle</button>
+              <p class="note" data-i18n="send.note">Dosya bu cihazda şifrelenir. Anahtar linkin # işaretinden sonraki kısmında kalır; sunucu dosyayı göremez.</p>
             </form>
           </section>
 
           <!-- Request mode -->
           <section data-panel="request" hidden>
-            <h1>Birinden dosya iste; sadece sen açabil.</h1>
-            <p class="lead">Bir istek linki oluştur ve gönder. O linkten yüklenen her dosya senin anahtarınla şifrelenir; anahtar bu tarayıcıdan çıkmaz.</p>
-            <label class="field-label" for="req-label">Ne istiyorsun?</label>
-            <input class="field" id="req-label" placeholder="Örneğin: kimlik fotokopisi ve vergi levhası" />
-            <button type="button" class="button">İstek linki oluştur</button>
+            <h1 data-i18n="request.title">Birinden dosya iste; sadece sen açabil.</h1>
+            <p class="lead" data-i18n="request.lead"></p>
+            <label class="field-label" for="req-label" data-i18n="request.label">Ne istiyorsun?</label>
+            <input class="field" id="req-label" data-i18n-placeholder="request.placeholder" />
+            <button type="button" class="button" data-soon data-i18n="request.button">İstek linki oluştur</button>
+            <p class="note" data-soon-note hidden data-i18n="soon"></p>
           </section>
 
           <!-- Live mode -->
           <section data-panel="live" hidden>
-            <h1>Karşındakiyle aynı anda, kısa bir kodla gönder.</h1>
-            <p class="lead">Kodu sesli oku ya da yaz; alıcı kodu girince dosya doğrudan onun cihazına gider. Kodu bilmeyen biri en fazla bir kez tahmin edebilir; yanlış tahminde bağlantı kapanır.</p>
-            <p class="code-sample" aria-label="Örnek kod">7-elma-kule</p>
-            <button type="button" class="button">Dosya seç ve kod al</button>
+            <h1 data-i18n="live.title">Karşındakiyle aynı anda, kısa bir kodla gönder.</h1>
+            <p class="lead" data-i18n="live.lead"></p>
+            <p class="code-sample" aria-hidden="true">7-elma-kule</p>
+            <button type="button" class="button" data-soon data-i18n="live.button">Dosya seç ve kod al</button>
+            <p class="note" data-soon-note hidden data-i18n="soon"></p>
           </section>
         </main>
 
         <aside class="side">
-          <!-- What the server sees: a postal slip -->
           <section class="slip" aria-labelledby="slip-title">
-            <h2 id="slip-title">Sunucunun gördüğü</h2>
+            <h2 id="slip-title" data-i18n="slip.title">Sunucunun gördüğü</h2>
             <dl class="slip__rows">
               <div>
-                <dt>Sen</dt>
-                <dd data-you>Bir dosya seç</dd>
+                <dt data-i18n="slip.you">Sen</dt>
+                <dd data-you><span data-i18n="slip.you.empty">Bir dosya seç</span></dd>
               </div>
               <div>
-                <dt>Sunucu</dt>
-                <dd class="bytes" data-bytes>Dosya seçince, sunucuya giden şifreli hâlinin ilk baytları burada görünür.</dd>
+                <dt data-i18n="slip.server">Sunucu</dt>
+                <dd class="bytes" data-bytes><span data-i18n="slip.server.empty"></span></dd>
               </div>
             </dl>
-            <p class="slip__foot" data-slip-foot>Dosya adı, türü ve içeriği şifreli kısımdadır; sunucu sadece yaklaşık boyutu görür.</p>
+            <p class="slip__foot" data-slip-foot data-i18n="slip.foot.empty"></p>
           </section>
 
-          <!-- Sent from this device: a ruled log book -->
           <section class="log" aria-labelledby="log-title">
-            <h2 id="log-title">Bu cihazdan gönderdiklerin</h2>
-            <ol class="log__list">
-              <li>
-                <span class="log__name">Vergi levhası 2026.pdf</span>
-                <span class="log__meta">19 Ekim'e kadar açık, 4 indirme hakkı kaldı</span>
-                <button type="button" class="log__delete">Sil</button>
-              </li>
-              <li>
-                <span class="log__name">Kira sözleşmesi.docx</span>
-                <span class="log__meta">İndirildi, artık açılamaz</span>
-                <button type="button" class="log__delete">Kaldır</button>
-              </li>
-            </ol>
-            <p class="log__foot">Bu liste sadece bu tarayıcıda tutulur.</p>
+            <h2 id="log-title" data-i18n="log.title">Bu cihazdan gönderdiklerin</h2>
+            <p class="log__empty" data-log-empty data-i18n="log.empty"></p>
+            <ol class="log__list" data-log hidden></ol>
+            <p class="log__foot" data-i18n="log.foot"></p>
           </section>
         </aside>
       </div>
 
-      <!-- Who it is for -->
       <section class="uses" aria-labelledby="uses-title">
-        <h2 id="uses-title">Ne zaman işine yarar</h2>
+        <h2 id="uses-title" data-i18n="uses.title">Ne zaman işine yarar</h2>
         <div class="uses__grid">
           <article>
-            <h3>Muhasebeci, müşterisinden kimlik fotokopisi istiyor</h3>
-            <p>E-postayla fotokopi istemek yerine bir istek linki gönderir. Müşteri dosyayı yükler; sadece muhasebecinin tarayıcısı açabilir, sunucuda okunur bir kopya kalmaz.</p>
-            <a href="#iste" data-mode-link="request">Dosya iste'yi aç</a>
+            <h3 data-i18n="uses.a.title"></h3>
+            <p data-i18n="uses.a.text"></p>
+            <a href="#iste" data-mode-link="request" data-i18n="uses.a.link"></a>
           </article>
           <article>
-            <h3>Avukat, imzalı sözleşmeyi müvekkiline gönderiyor</h3>
-            <p>Bir gün açık, bir kez indirilebilen, şifreyle korunan bir link oluşturur. Şifreyi telefonla söyler; link başkasının eline geçse bile tek başına açmaz.</p>
-            <a href="#link" data-mode-link="link">Link ile gönder'i aç</a>
+            <h3 data-i18n="uses.b.title"></h3>
+            <p data-i18n="uses.b.text"></p>
+            <a href="#link" data-mode-link="link" data-i18n="uses.b.link"></a>
           </article>
         </div>
-        <p class="kvkk"><strong>KVKK.</strong> Kişisel veri içeren belgelerde kanun uygun güvenlik önlemi ister. Zarf'ta dosya, adı ve türü sunucuya şifreli gider; sunucu bunları çözecek anahtara hiç sahip olmaz.</p>
+        <p class="kvkk"><strong data-i18n="kvkk.lead">KVKK.</strong> <span data-i18n="kvkk.text"></span></p>
       </section>
 
-      <!-- The command-line tool -->
       <section class="cli" aria-labelledby="cli-title">
-        <h2 id="cli-title">Komut satırından da çalışır</h2>
-        <p>Tarayıcıda gönderilen bir dosya komut satırında, komut satırından gönderilen bir dosya tarayıcıda açılır. İkisi aynı şifreli biçimi kullanır.</p>
+        <h2 id="cli-title" data-i18n="cli.title">Komut satırından da çalışır</h2>
+        <p data-i18n="cli.text"></p>
         <div class="command">
-          <code>zarf send rapor.pdf</code>
-          <button type="button" class="copy">Kopyala</button>
+          <code data-command>zarf send rapor.pdf</code>
+          <button type="button" class="copy" data-copy-command data-i18n="cli.copy">Kopyala</button>
         </div>
-        <p class="downloads">İndir: <a href="https://github.com/MrcDprm/zarf-file-share/releases/latest">Windows</a>, <a href="https://github.com/MrcDprm/zarf-file-share/releases/latest">macOS</a>, <a href="https://github.com/MrcDprm/zarf-file-share/releases/latest">Linux</a></p>
+        <p class="downloads">
+          <span data-i18n="cli.download">İndir:</span>
+          <a href="https://github.com/MrcDprm/zarf-file-share/releases/latest">Windows</a>,
+          <a href="https://github.com/MrcDprm/zarf-file-share/releases/latest">macOS</a>,
+          <a href="https://github.com/MrcDprm/zarf-file-share/releases/latest">Linux</a>
+        </p>
       </section>
 
-      <footer class="foot">Zarf açık kaynaklıdır. <a href="https://github.com/MrcDprm/zarf-file-share">Kaynak kodu GitHub'da.</a></footer>
+      <footer class="foot"><span data-i18n="foot.text">Zarf açık kaynaklıdır.</span> <a href="https://github.com/MrcDprm/zarf-file-share" data-i18n="foot.link">Kaynak kodu GitHub'da.</a></footer>
     </div>
 
     <!-- The carrier pigeon that takes a finished envelope away. Decorative only. -->
@@ -191,12 +199,12 @@
           <path class="pg-wing" d="M60 40 C50 22 32 10 16 12 C30 24 40 36 46 50 C53 50 58 47 60 40 Z" />
           <path class="pg-bar" d="M30 18 C38 24 44 31 49 40 M24 15 C33 21 40 29 45 38" />
         </g>
-        <g class="parcel" data-parcel>
+        <g class="parcel">
           <rect x="44" y="70" width="34" height="22" rx="2" />
           <path d="M45 71 61 83 77 71" />
         </g>
       </svg>
     </div>
-    <script type="module" src="/src/preview.ts"></script>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
