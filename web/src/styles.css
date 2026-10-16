@@ -1,0 +1,794 @@
+@import "./fonts.css";
+
+/* Zarf: a security envelope. The tint printed inside envelopes is the one memorable thing;
+   everything around it stays quiet, like a well-made office form. */
+
+:root {
+  --paper: #f3f5f8;
+  --ink: #18202e;
+  --ink-soft: #4b5568;
+  --blue: #4a6a9b;
+  --blue-press: #3c5885;
+  --tint: #c9d5e6;
+  --envelope: #e3e9f1;
+  --window: #ffffff;
+  --seal: #1e7a5a;
+  --error: #b3261e;
+  --rule: #cfd6e0;
+  --focus: #4a6a9b;
+  --flap: #d4dce8;
+  color-scheme: light;
+}
+
+/* Dark: a blue-grey night paper, not near-black. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #1b2333;
+    --ink: #e6ebf2;
+    --ink-soft: #a9b4c6;
+    --blue: #86a5d4;
+    --blue-press: #a2bce2;
+    --tint: #34445f;
+    --envelope: #232d40;
+    --window: #121927;
+    --seal: #5cc19a;
+    --error: #f2867e;
+    --rule: #33405a;
+    --focus: #a2bce2;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #1b2333;
+  --ink: #e6ebf2;
+  --ink-soft: #a9b4c6;
+  --blue: #86a5d4;
+  --blue-press: #a2bce2;
+  --tint: #34445f;
+  --envelope: #232d40;
+  --window: #121927;
+  --seal: #5cc19a;
+  --error: #f2867e;
+  --rule: #33405a;
+  --focus: #a2bce2;
+  --flap: #2b3750;
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* "hidden" always wins over a component's own display value. */
+[hidden] {
+  display: none !important;
+}
+
+html {
+  font-family: "Source Sans 3", system-ui, sans-serif;
+  font-size: 106.25%; /* 17px body: comfortable for forms read at arm's length */
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+.page {
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: 1.25rem 1.25rem 3rem;
+}
+
+/* Wide screens: the form on the left, the slip and the log beside it. */
+.layout {
+  display: grid;
+  gap: 2.5rem;
+}
+.main {
+  min-width: 0;
+  max-width: 40rem;
+}
+.side {
+  display: grid;
+  gap: 2rem;
+  align-content: start;
+}
+@media (min-width: 62rem) {
+  .layout {
+    grid-template-columns: minmax(0, 40rem) minmax(0, 22rem);
+    justify-content: space-between;
+  }
+  .side {
+    padding-top: 4.25rem; /* line up with the envelope, under the modes and heading */
+  }
+}
+
+/* --- the three ways to send: tabs that read like folder dividers --- */
+.modes {
+  display: flex;
+  gap: 0.25rem;
+  overflow-x: auto; /* one row on phones too; it scrolls if it must */
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 1.25rem;
+}
+.mode {
+  flex: none;
+  white-space: nowrap;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+  color: var(--ink-soft);
+  font-weight: 600;
+  text-decoration: none;
+  margin-bottom: -1px;
+}
+.mode:hover {
+  color: var(--ink);
+}
+.mode[aria-current="page"] {
+  color: var(--ink);
+  background: var(--paper);
+  border-color: var(--rule);
+  border-bottom: 1px solid var(--paper);
+}
+.mode:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.lead {
+  max-width: 34rem;
+  margin: 0 0 1.25rem;
+  color: var(--ink-soft);
+}
+.field-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.45rem;
+}
+[data-panel] > .field {
+  display: block;
+}
+@media (max-width: 30rem) {
+  .mode {
+    padding: 0.5rem 0.65rem;
+    font-size: 0.95rem;
+  }
+}
+.code-sample {
+  margin: 0 0 1rem;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 1.6rem;
+  letter-spacing: 0.02em;
+}
+
+/* --- header: the name, then language and theme as small round buttons --- */
+.top {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 1.25rem;
+}
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  text-decoration: none;
+  margin-right: auto;
+}
+.wordmark__mark {
+  width: 1.9rem;
+  height: 1.9rem;
+  fill: var(--blue);
+  stroke: var(--paper);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  background: var(--window);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.icon-btn:hover {
+  border-color: var(--blue);
+}
+.icon-btn svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+.i-sun,
+.is-dark .i-moon {
+  display: none;
+}
+.is-dark .i-sun {
+  display: block;
+}
+
+h1 {
+  font-size: 2.1rem;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 0.5rem 0 1.5rem;
+  max-width: 22ch;
+}
+
+/* --- the envelope: a tinted face with an address window --- */
+.envelope {
+  position: relative;
+  padding: 1.75rem 1.25rem;
+  border-radius: 6px;
+  background: var(--envelope);
+  overflow: hidden;
+  isolation: isolate;
+}
+.envelope::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--tint);
+  -webkit-mask: url(./tint.svg) repeat;
+  mask: url(./tint.svg) repeat;
+  z-index: -1;
+}
+.envelope.is-dragging {
+  outline: 2px dashed var(--blue);
+  outline-offset: -8px;
+}
+
+.window {
+  position: relative;
+  max-width: 26rem;
+  min-height: 7.5rem;
+  padding: 1.1rem 1.25rem;
+  background: var(--window);
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px var(--rule); /* the window's edge stays visible once the tint covers it */
+  overflow: hidden;
+  display: grid;
+  align-content: center;
+  gap: 0.35rem;
+}
+.window__prompt {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+.window__hint {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+.window__name {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+/* The cover is solid envelope paper with the tint on top: once it slides in, the name is gone. */
+.window__cover {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: var(--envelope);
+  transform: translateX(-101%);
+  transition: transform 700ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+.window__cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--tint);
+  -webkit-mask: url(./tint.svg) repeat;
+  mask: url(./tint.svg) repeat;
+}
+.is-sealed .window__cover {
+  transform: none;
+}
+.status {
+  margin: 0.9rem 0 0;
+  font-weight: 600;
+  min-height: 1.5em;
+}
+.status--sealed {
+  color: var(--seal);
+}
+.progress {
+  height: 3px;
+  margin-top: 0.4rem;
+  background: var(--rule);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress > span {
+  display: block;
+  height: 100%;
+  width: var(--done, 0%);
+  background: var(--seal);
+}
+
+/* --- the form under it --- */
+.choices {
+  margin-top: 1.75rem;
+  display: grid;
+  gap: 1.25rem;
+}
+fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+legend {
+  font-weight: 600;
+  padding: 0;
+  margin-bottom: 0.45rem;
+}
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.option {
+  position: relative;
+}
+.option input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+.option span {
+  display: inline-block;
+  min-width: 3.25rem;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  text-align: center;
+  background: var(--window);
+}
+.option input:checked + span {
+  border-color: var(--blue);
+  box-shadow: inset 0 0 0 1px var(--blue);
+  font-weight: 650;
+}
+.option input:focus-visible + span,
+.button:focus-visible,
+.icon-btn:focus-visible,
+.field:focus-visible,
+.pick:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.password {
+  display: grid;
+  gap: 0.5rem;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 600;
+}
+.check input {
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--blue);
+  margin: 0;
+}
+.field {
+  font: inherit;
+  width: 100%;
+  max-width: 22rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--window);
+  color: var(--ink);
+}
+
+.button {
+  font: inherit;
+  font-weight: 650;
+  font-size: 1.05rem;
+  color: #fff;
+  background: var(--blue);
+  border: 0;
+  border-radius: 6px;
+  padding: 0.75rem 1.4rem;
+  margin-top: 1.75rem;
+  cursor: pointer;
+}
+:root[data-theme="dark"] .button {
+  color: #121927;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .button {
+    color: #121927;
+  }
+}
+.button:hover {
+  background: var(--blue-press);
+}
+.pick {
+  font: inherit;
+  font-weight: 600;
+  color: var(--blue);
+  background: none;
+  border: 0;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.note {
+  margin: 1rem 0 0;
+  max-width: 34rem;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+.foot {
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+.foot a {
+  color: inherit;
+}
+
+@media (min-width: 40rem) {
+  .page {
+    padding-top: 2rem;
+  }
+  h1 {
+    font-size: 2.6rem;
+  }
+  .envelope {
+    padding: 2.5rem 2rem 2.25rem;
+  }
+}
+
+/* --- the slip: what the server sees, with a perforated top edge --- */
+.slip {
+  position: relative;
+  padding: 1.4rem 1.25rem 1.1rem;
+  background: var(--window);
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 0 0 1px var(--rule);
+  -webkit-mask: radial-gradient(circle 5px at 7px 0, transparent 98%, #000) -7px 0 / 14px 100% repeat-x;
+  mask: radial-gradient(circle 5px at 7px 0, transparent 98%, #000) -7px 0 / 14px 100% repeat-x;
+}
+.slip h2,
+.log h2 {
+  margin: 0 0 0.8rem;
+  font-size: 1.15rem;
+}
+.slip__rows {
+  margin: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+.slip__rows > div {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  gap: 0.75rem;
+  align-items: baseline;
+}
+.slip__rows dt {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+.slip__rows dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.slip__size {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+.bytes {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+.bytes.is-live {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--blue);
+  word-spacing: 0.3em;
+}
+.slip__foot {
+  margin: 1rem 0 0;
+  padding-top: 0.8rem;
+  border-top: 1px dashed var(--rule);
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+/* --- the log: sent from this device, on ruled lines like a dispatch book --- */
+.log__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--rule);
+}
+.log__list li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.1rem 0.75rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.log__name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.log__meta {
+  grid-column: 1;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+.log__delete {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--error);
+  background: none;
+  border: 0;
+  padding: 0.25rem 0;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+.log__foot {
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+/* --- below the fold: when it helps, and the command line --- */
+.uses,
+.cli {
+  margin-top: 4rem;
+  max-width: 62rem;
+}
+.uses h2,
+.cli h2 {
+  font-size: 1.6rem;
+  line-height: 1.2;
+  margin: 0 0 1.25rem;
+}
+.uses__grid {
+  display: grid;
+  gap: 1.75rem;
+}
+@media (min-width: 48rem) {
+  .uses__grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+  }
+}
+.uses h3 {
+  font-size: 1.1rem;
+  margin: 0 0 0.4rem;
+  line-height: 1.3;
+}
+.uses p,
+.cli p {
+  margin: 0 0 0.6rem;
+  max-width: 36rem;
+}
+.uses a,
+.downloads a {
+  color: var(--blue);
+  font-weight: 600;
+  text-underline-offset: 0.2em;
+}
+.kvkk {
+  margin-top: 1.75rem !important;
+  color: var(--ink-soft);
+}
+.kvkk strong {
+  color: var(--ink);
+}
+.command {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 28rem;
+  margin: 1rem 0;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--window);
+}
+.command code {
+  flex: 1;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.95rem;
+}
+.command code::before {
+  content: "$ ";
+  color: var(--ink-soft);
+}
+.copy {
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--blue);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+/* --- sending: the flap closes, then a carrier pigeon takes the envelope away --- */
+.envelope {
+  perspective: 900px;
+}
+.flap {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 58%;
+  z-index: 2;
+  background: var(--flap);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  filter: drop-shadow(0 2px 0 rgb(24 32 46 / 0.12));
+  transform-origin: top;
+  transform: rotateX(180deg);
+  backface-visibility: hidden;
+  visibility: hidden;
+}
+.flap::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--tint);
+  -webkit-mask: url(./tint.svg) repeat;
+  mask: url(./tint.svg) repeat;
+  filter: brightness(0.92);
+}
+.is-closing .flap {
+  visibility: visible;
+  transform: rotateX(0);
+  transition: transform 550ms cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+
+.flight {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+.pigeon {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 140px;
+  height: 96px;
+  overflow: visible;
+}
+.pg-tail { fill: #6c7a8d; }
+.pg-belly { fill: #a3aebd; }
+.pg-head { fill: #8996a8; }
+.pg-neck { fill: #4f8a76; opacity: 0.85; }
+.pg-beak { fill: #d6a25c; }
+.pg-eye-ring { fill: #e9a94f; }
+.pg-eye { fill: #18202e; }
+.pg-feet { stroke: #c97a6a; stroke-width: 2.4; stroke-linecap: round; fill: none; }
+.pg-wing { fill: #7f8ca0; }
+.pg-bar { stroke: #3f4859; stroke-width: 2; stroke-linecap: round; fill: none; }
+.pigeon__wing {
+  transform-origin: 58px 42px;
+  animation: flap 220ms ease-in-out infinite alternate;
+}
+@keyframes flap {
+  from { transform: rotate(-28deg); }
+  to { transform: rotate(32deg) scaleY(0.85); }
+}
+.parcel rect {
+  fill: var(--envelope);
+  stroke: var(--blue);
+  stroke-width: 1.6;
+}
+.parcel path {
+  fill: none;
+  stroke: var(--blue);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+.parcel {
+  opacity: 0;
+}
+
+/* --- after delivery: the receipt with the link --- */
+.receipt {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.5rem 0 0.5rem;
+}
+.receipt[hidden] {
+  display: none;
+}
+.receipt h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+.receipt__done {
+  margin: 0;
+  color: var(--seal);
+  font-weight: 650;
+}
+.link-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+.link {
+  flex: 1 1 18rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--window);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+.receipt .button {
+  margin-top: 0;
+}
+.receipt__terms {
+  margin: 0;
+  color: var(--ink-soft);
+}
+.has-parcel .parcel {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .window__cover {
+    transition: none;
+  }
+  .is-closing .flap {
+    transition: none;
+  }
+  .pigeon__wing {
+    animation: none;
+  }
+}

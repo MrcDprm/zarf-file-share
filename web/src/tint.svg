@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="16" viewBox="0 0 48 16">
+  <!-- Security-envelope tint: crossing waves, as printed inside envelopes so the contents cannot be read through.
+       Used as a mask, so the page decides its colour in each theme. -->
+  <g fill="none" stroke="#000" stroke-width="1.1">
+    <path d="M0 8 C6 1 18 1 24 8 S42 15 48 8"/>
+    <path d="M0 8 C6 15 18 15 24 8 S42 1 48 8"/>
+    <path d="M-24 0 C-18 7 -6 7 0 0 S18 -7 24 0 S42 7 48 0" opacity=".55"/>
+    <path d="M-24 16 C-18 9 -6 9 0 16 S18 23 24 16 S42 9 48 16" opacity=".55"/>
+  </g>
+</svg>
