@@ -88,6 +88,13 @@ func (a *app) run(args []string) int {
 	return 0
 }
 
+// Prompts for secrets say that typing stays invisible, so nobody thinks the keyboard stopped working.
+const (
+	promptPassword      = "Password (not shown as you type): "
+	promptPasswordAgain = "Password again (not shown): "
+	promptKey           = "Key or link (not shown as you type): "
+)
+
 type usageError struct{ msg string }
 
 func (e usageError) Error() string { return e.msg }

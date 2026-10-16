@@ -103,14 +103,14 @@ func writeEnvelope(dst io.Writer, src io.Reader, p envelope.Params, ikm []byte, 
 }
 
 func (a *app) newPassword() (string, error) {
-	pw, err := a.secret("Password: ")
+	pw, err := a.secret(promptPassword)
 	if err != nil {
 		return "", err
 	}
 	if utf8.RuneCountInString(pw) < minPassword {
 		return "", fmt.Errorf("the password needs at least %d characters", minPassword)
 	}
-	again, err := a.secret("Password again: ")
+	again, err := a.secret(promptPasswordAgain)
 	if err != nil {
 		return "", err
 	}
@@ -136,7 +136,7 @@ func (a *app) decrypt(args []string) error {
 
 	keyText := *keyFlag
 	if keyText == "" {
-		if keyText, err = a.secret("Key or link: "); err != nil {
+		if keyText, err = a.secret(promptKey); err != nil {
 			return err
 		}
 	}
@@ -146,7 +146,7 @@ func (a *app) decrypt(args []string) error {
 	}
 	r, err := envelope.Open(in, func(h *envelope.Header) ([]byte, error) {
 		if h.Mode == envelope.ModeLinkPassword {
-			pw, err := a.secret("Password: ")
+			pw, err := a.secret(promptPassword)
 			if err != nil {
 				return nil, err
 			}

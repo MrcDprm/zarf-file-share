@@ -245,7 +245,7 @@ func (a *app) receive(args []string) error {
 		case envelope.ModeLinkPassword:
 			// The download is already spent, so a typo must not waste it: ask again.
 			for i := 0; i < passwordAttempts; i++ {
-				pw, err := a.secret("Password: ")
+				pw, err := a.secret(promptPassword)
 				if err != nil {
 					return nil, err
 				}
