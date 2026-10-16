@@ -27,10 +27,12 @@ var contentTypes = map[string]string{
 	".woff2": "font/woff2",
 }
 
-// webRoutes serves the built interface: "/" sends a file, "/d/{id}" receives one.
+// webRoutes serves the built interface: "/" sends a file, "/d/{id}" receives one, "/r/{rid}"
+// uploads to a request.
 func (s *Server) webRoutes() {
 	s.mux.HandleFunc("GET /{$}", s.serveFile("index.html", "no-cache"))
 	s.mux.HandleFunc("GET /d/{id}", s.serveFile("d.html", "no-cache"))
+	s.mux.HandleFunc("GET /r/{rid}", s.serveFile("r.html", "no-cache"))
 	s.mux.HandleFunc("GET /favicon.svg", s.serveFile("favicon.svg", "no-cache"))
 	s.mux.HandleFunc("GET /assets/{name}", func(w http.ResponseWriter, r *http.Request) {
 		// Asset names carry a hash of their content, so a browser may keep them for good.

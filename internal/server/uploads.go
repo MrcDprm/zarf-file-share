@@ -35,11 +35,7 @@ func (s *Server) createUpload(w http.ResponseWriter, r *http.Request) {
 	expiry := time.Duration(req.ExpiresIn) * time.Second
 	dlAuthHash, err := b64.DecodeString(req.DLAuthHash)
 	switch {
-	case req.Size > s.cfg.MaxSize:
-		writeError(w, http.StatusRequestEntityTooLarge, "too_large")
-		return
-	case req.Size < minEnvelope:
-		writeError(w, http.StatusBadRequest, "invalid_size")
+	case !s.sizeAllowed(w, req.Size):
 		return
 	case !slices.Contains(Expiries, expiry):
 		writeError(w, http.StatusBadRequest, "invalid_expiry")
@@ -51,35 +47,61 @@ func (s *Server) createUpload(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid_request")
 		return
 	}
-	if !s.uploads.allow(s.clientAddress(r)) {
-		writeError(w, http.StatusTooManyRequests, "too_many_requests")
-		return
-	}
-	reserved, err := s.store.reservedBytes(r.Context())
-	if err != nil {
-		s.fail(w, err)
-		return
-	}
-	if reserved+req.Size > s.cfg.StorageQuota {
-		writeError(w, http.StatusInsufficientStorage, "storage_full")
+	if !s.admit(w, r, req.Size) {
 		return
 	}
 
 	now := s.cfg.Now().Truncate(time.Second) // the database keeps whole seconds
-	uploadToken, deleteToken := randomToken(32), randomToken(32)
-	f := &fileRow{
-		ID: newID(), Size: req.Size, PartSize: s.cfg.PartSize,
-		UploadTokenHash: hashToken(uploadToken), DeleteTokenHash: hashToken(deleteToken), DLAuthHash: dlAuthHash,
-		MaxDownloads: req.MaxDownloads, CreatedAt: now, ExpiresAt: now.Add(expiry),
-	}
+	f, res := s.newFile(req.Size, dlAuthHash, req.MaxDownloads, now, now.Add(expiry))
 	if err := s.store.insertFile(r.Context(), f); err != nil {
 		s.fail(w, err)
 		return
 	}
-	writeJSON(w, http.StatusCreated, createUploadResponse{
+	writeJSON(w, http.StatusCreated, res)
+}
+
+func (s *Server) sizeAllowed(w http.ResponseWriter, size int64) bool {
+	switch {
+	case size > s.cfg.MaxSize:
+		writeError(w, http.StatusRequestEntityTooLarge, "too_large")
+		return false
+	case size < minEnvelope:
+		writeError(w, http.StatusBadRequest, "invalid_size")
+		return false
+	}
+	return true
+}
+
+// admit applies the per-address rate limit and the storage quota to a new upload.
+func (s *Server) admit(w http.ResponseWriter, r *http.Request, size int64) bool {
+	if !s.uploads.allow(s.clientAddress(r)) {
+		writeError(w, http.StatusTooManyRequests, "too_many_requests")
+		return false
+	}
+	reserved, err := s.store.reservedBytes(r.Context())
+	if err != nil {
+		s.fail(w, err)
+		return false
+	}
+	if reserved+size > s.cfg.StorageQuota {
+		writeError(w, http.StatusInsufficientStorage, "storage_full")
+		return false
+	}
+	return true
+}
+
+// newFile makes the row of a new upload and the answer that hands its tokens out, once.
+func (s *Server) newFile(size int64, dlAuthHash []byte, maxDownloads int, now, expires time.Time) (*fileRow, createUploadResponse) {
+	uploadToken, deleteToken := randomToken(32), randomToken(32)
+	f := &fileRow{
+		ID: newID(), Size: size, PartSize: s.cfg.PartSize,
+		UploadTokenHash: hashToken(uploadToken), DeleteTokenHash: hashToken(deleteToken), DLAuthHash: dlAuthHash,
+		MaxDownloads: maxDownloads, CreatedAt: now, ExpiresAt: expires,
+	}
+	return f, createUploadResponse{
 		ID: f.ID, UploadToken: b64.EncodeToString(uploadToken), DeleteToken: b64.EncodeToString(deleteToken),
 		PartSize: f.PartSize, ExpiresAt: f.ExpiresAt.UTC(),
-	})
+	}
 }
 
 // uploading finds an upload still in progress whose upload token the request carries.

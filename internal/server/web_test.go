@@ -14,6 +14,7 @@ func webServer(t *testing.T) *Server {
 	files := fstest.MapFS{
 		"index.html":           {Data: []byte("<!doctype html><title>send</title>")},
 		"d.html":               {Data: []byte("<!doctype html><title>receive</title>")},
+		"r.html":               {Data: []byte("<!doctype html><title>give</title>")},
 		"favicon.svg":          {Data: []byte("<svg/>")},
 		"assets/main-abc.js":   {Data: []byte("console.log(1)")},
 		"assets/font.woff2":    {Data: []byte("wOF2")},
@@ -40,6 +41,7 @@ func TestPages(t *testing.T) {
 	}{
 		{"/", "send", "text/html; charset=utf-8", "no-cache"},
 		{"/d/AAAAAAAAAAAAAAAAAAAAAA", "receive", "text/html; charset=utf-8", "no-cache"},
+		{"/r/AAAAAAAAAAAAAAAAAAAAAA", "give", "text/html; charset=utf-8", "no-cache"},
 		{"/favicon.svg", "<svg/>", "image/svg+xml", "no-cache"},
 		{"/assets/main-abc.js", "console.log(1)", "text/javascript; charset=utf-8", "public, max-age=31536000, immutable"},
 		{"/assets/font.woff2", "wOF2", "font/woff2", "public, max-age=31536000, immutable"},

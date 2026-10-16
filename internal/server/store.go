@@ -6,6 +6,7 @@ import (
 	"crypto/subtle"
 	"database/sql"
 	"errors"
+	"strings"
 	"time"
 
 	_ "modernc.org/sqlite" // pure Go: builds for any platform without a C compiler
@@ -25,7 +26,16 @@ CREATE TABLE IF NOT EXISTS files (
 	downloads         INTEGER NOT NULL DEFAULT 0,
 	complete          INTEGER NOT NULL DEFAULT 0,
 	created_at        INTEGER NOT NULL,
-	expires_at        INTEGER NOT NULL
+	expires_at        INTEGER NOT NULL,
+	request_id        TEXT
+);
+CREATE TABLE IF NOT EXISTS requests (
+	id               TEXT PRIMARY KEY,
+	label            TEXT NOT NULL,
+	owner_token_hash BLOB NOT NULL,
+	max_uploads      INTEGER NOT NULL,
+	created_at       INTEGER NOT NULL,
+	expires_at       INTEGER NOT NULL
 );
 CREATE TABLE IF NOT EXISTS parts (
 	file_id TEXT NOT NULL REFERENCES files(id) ON DELETE CASCADE,
@@ -34,6 +44,7 @@ CREATE TABLE IF NOT EXISTS parts (
 	PRIMARY KEY (file_id, n)
 );
 CREATE INDEX IF NOT EXISTS files_expires ON files(expires_at);
+CREATE INDEX IF NOT EXISTS files_request ON files(request_id);
 CREATE TABLE IF NOT EXISTS tickets (
 	hash       BLOB PRIMARY KEY,
 	file_id    TEXT NOT NULL REFERENCES files(id) ON DELETE CASCADE,
@@ -60,6 +71,7 @@ type fileRow struct {
 	Complete        bool
 	CreatedAt       time.Time
 	ExpiresAt       time.Time
+	RequestID       string // set when the file was uploaded to a request
 }
 
 func (f *fileRow) parts() int64 { return (f.Size + f.PartSize - 1) / f.PartSize }
@@ -76,6 +88,11 @@ func openStore(path string) (*store, error) {
 	}
 	// One connection: SQLite has one writer anyway, and this rules out "database is locked".
 	db.SetMaxOpenConns(1)
+	// A database made before requests existed gets the new column first.
+	if _, err := db.Exec(`ALTER TABLE files ADD COLUMN request_id TEXT`); err != nil && !strings.Contains(err.Error(), "duplicate column") && !strings.Contains(err.Error(), "no such table") {
+		db.Close()
+		return nil, err
+	}
 	if _, err := db.Exec(schema); err != nil {
 		db.Close()
 		return nil, err
@@ -96,14 +113,15 @@ func (s *store) insertFile(ctx context.Context, f *fileRow) error {
 func (s *store) file(ctx context.Context, id string) (*fileRow, error) {
 	f := &fileRow{ID: id}
 	var created, expires int64
+	var request sql.NullString
 	err := s.db.QueryRowContext(ctx, `SELECT size, part_size, upload_token_hash, delete_token_hash, dl_auth_hash,
-		max_downloads, downloads, complete, created_at, expires_at FROM files WHERE id = ?`, id).
+		max_downloads, downloads, complete, created_at, expires_at, request_id FROM files WHERE id = ?`, id).
 		Scan(&f.Size, &f.PartSize, &f.UploadTokenHash, &f.DeleteTokenHash, &f.DLAuthHash,
-			&f.MaxDownloads, &f.Downloads, &f.Complete, &created, &expires)
+			&f.MaxDownloads, &f.Downloads, &f.Complete, &created, &expires, &request)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, errNotFound
 	}
-	f.CreatedAt, f.ExpiresAt = time.Unix(created, 0), time.Unix(expires, 0)
+	f.CreatedAt, f.ExpiresAt, f.RequestID = time.Unix(created, 0), time.Unix(expires, 0), request.String
 	return f, err
 }
 
@@ -223,4 +241,124 @@ func (s *store) exists(ctx context.Context, id string) (bool, error) {
 	var n int
 	err := s.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM files WHERE id = ?`, id).Scan(&n)
 	return n == 1, err
+}
+
+// --- requests (PROTOCOL.md section 4) ---
+
+type requestRow struct {
+	ID             string
+	Label          string
+	OwnerTokenHash []byte
+	MaxUploads     int
+	CreatedAt      time.Time
+	ExpiresAt      time.Time
+}
+
+func (s *store) insertRequest(ctx context.Context, q *requestRow) error {
+	_, err := s.db.ExecContext(ctx, `INSERT INTO requests (id, label, owner_token_hash, max_uploads, created_at, expires_at)
+		VALUES (?, ?, ?, ?, ?, ?)`, q.ID, q.Label, q.OwnerTokenHash, q.MaxUploads, q.CreatedAt.Unix(), q.ExpiresAt.Unix())
+	return err
+}
+
+func (s *store) request(ctx context.Context, id string) (*requestRow, error) {
+	q := &requestRow{ID: id}
+	var created, expires int64
+	err := s.db.QueryRowContext(ctx, `SELECT label, owner_token_hash, max_uploads, created_at, expires_at FROM requests WHERE id = ?`, id).
+		Scan(&q.Label, &q.OwnerTokenHash, &q.MaxUploads, &created, &expires)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, errNotFound
+	}
+	q.CreatedAt, q.ExpiresAt = time.Unix(created, 0), time.Unix(expires, 0)
+	return q, err
+}
+
+// requestUploads counts the uploads a request has taken, finished or not.
+func (s *store) requestUploads(ctx context.Context, id string) (int, error) {
+	var n int
+	err := s.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM files WHERE request_id = ?`, id).Scan(&n)
+	return n, err
+}
+
+// insertRequestFile adds an upload to a request only while the request has room. The count
+// and the insert are one statement, so two uploaders cannot both take the last place.
+func (s *store) insertRequestFile(ctx context.Context, f *fileRow, maxUploads int) (bool, error) {
+	res, err := s.db.ExecContext(ctx, `INSERT INTO files
+		(id, size, part_size, upload_token_hash, delete_token_hash, dl_auth_hash, max_downloads, created_at, expires_at, request_id)
+		SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+		WHERE (SELECT COUNT(*) FROM files WHERE request_id = ?) < ?`,
+		f.ID, f.Size, f.PartSize, f.UploadTokenHash, f.DeleteTokenHash, f.DLAuthHash, f.MaxDownloads,
+		f.CreatedAt.Unix(), f.ExpiresAt.Unix(), f.RequestID, f.RequestID, maxUploads)
+	if err != nil {
+		return false, err
+	}
+	n, err := res.RowsAffected()
+	return n == 1, err
+}
+
+type requestFile struct {
+	ID            string    `json:"id"`
+	Size          int64     `json:"size"`
+	CreatedAt     time.Time `json:"created_at"`
+	DownloadsLeft int       `json:"downloads_left"`
+}
+
+// requestFiles lists the finished uploads of a request, oldest first.
+func (s *store) requestFiles(ctx context.Context, id string) ([]requestFile, error) {
+	rows, err := s.db.QueryContext(ctx, `SELECT id, size, created_at, max_downloads - downloads FROM files
+		WHERE request_id = ? AND complete = 1 ORDER BY created_at, id`, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	files := []requestFile{}
+	for rows.Next() {
+		var f requestFile
+		var created int64
+		if err := rows.Scan(&f.ID, &f.Size, &created, &f.DownloadsLeft); err != nil {
+			return nil, err
+		}
+		f.CreatedAt = time.Unix(created, 0).UTC()
+		files = append(files, f)
+	}
+	return files, rows.Err()
+}
+
+func (s *store) requestFileIDs(ctx context.Context, id string) ([]string, error) {
+	rows, err := s.db.QueryContext(ctx, `SELECT id FROM files WHERE request_id = ?`, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var ids []string
+	for rows.Next() {
+		var f string
+		if err := rows.Scan(&f); err != nil {
+			return nil, err
+		}
+		ids = append(ids, f)
+	}
+	return ids, rows.Err()
+}
+
+func (s *store) deleteRequest(ctx context.Context, id string) error {
+	_, err := s.db.ExecContext(ctx, `DELETE FROM requests WHERE id = ?`, id)
+	return err
+}
+
+// expiredRequests lists requests past their time; their files expire with them.
+func (s *store) expiredRequests(ctx context.Context, now time.Time) ([]string, error) {
+	rows, err := s.db.QueryContext(ctx, `SELECT id FROM requests WHERE expires_at <= ?`, now.Unix())
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var ids []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, rows.Err()
 }

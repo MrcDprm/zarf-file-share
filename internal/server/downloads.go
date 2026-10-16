@@ -6,9 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
-	"unicode"
 )
 
 const (
@@ -82,6 +80,11 @@ func (s *Server) startDownload(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusForbidden, "wrong_key")
 		return
 	}
+	s.spendAndTicket(w, r, f)
+}
+
+// spendAndTicket takes one download of f and hands out the ticket for its content.
+func (s *Server) spendAndTicket(w http.ResponseWriter, r *http.Request, f *fileRow) {
 	now := s.cfg.Now()
 	spent, err := s.store.spendDownload(r.Context(), f.ID, now)
 	if err != nil {
@@ -185,19 +188,7 @@ func (s *Server) report(w http.ResponseWriter, r *http.Request) {
 }
 
 // cleanReason keeps a report to one plain line of limited length.
-func cleanReason(s string) string {
-	s = strings.Map(func(r rune) rune {
-		if unicode.IsControl(r) || unicode.Is(unicode.Cf, r) {
-			return ' '
-		}
-		return r
-	}, s)
-	s = strings.Join(strings.Fields(s), " ")
-	if r := []rune(s); len(r) > maxReasonLen {
-		s = string(r[:maxReasonLen])
-	}
-	return s
-}
+func cleanReason(s string) string { return oneLine(s, maxReasonLen) }
 
 // remove deletes a file's row and its bytes.
 func (s *Server) remove(ctx context.Context, id string) error {
@@ -218,6 +209,15 @@ func (s *Server) Cleanup(ctx context.Context) (int, error) {
 	for _, id := range ids {
 		if err := s.remove(ctx, id); err != nil {
 			return 0, err
+		}
+	}
+	requests, err := s.store.expiredRequests(ctx, now)
+	if err != nil {
+		return len(ids), err
+	}
+	for _, rid := range requests { // their files expired with them and went above
+		if err := s.store.deleteRequest(ctx, rid); err != nil {
+			return len(ids), err
 		}
 	}
 	if err := s.store.dropExpiredTickets(ctx, now); err != nil {

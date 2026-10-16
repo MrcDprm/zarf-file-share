@@ -31,6 +31,10 @@ type Config struct {
 	// TrustProxy takes the client address from X-Forwarded-For, but only when the request
 	// comes from this machine (the reverse proxy in front). Anyone else could forge it.
 	TrustProxy bool
+	// Live mode: how long a channel waits for the receiver, how long a session may last,
+	// and how many bytes may pass through one channel.
+	LiveWait, LiveSession time.Duration
+	LiveMaxBytes          int64
 	// Web is the built interface; nil serves only the API.
 	Web fs.FS
 	Now func() time.Time
@@ -38,7 +42,10 @@ type Config struct {
 
 // DefaultConfig is the public instance: 1024 MB per file, 100 GB in total.
 func DefaultConfig(dataDir string) Config {
-	return Config{DataDir: dataDir, MaxSize: 1024 * MB, PartSize: 8 * MB, StorageQuota: 100 * GB, UploadsPerHour: 20, Now: time.Now}
+	return Config{
+		DataDir: dataDir, MaxSize: 1024 * MB, PartSize: 8 * MB, StorageQuota: 100 * GB, UploadsPerHour: 20,
+		LiveWait: 10 * time.Minute, LiveSession: 2 * time.Hour, LiveMaxBytes: 1100 * MB, Now: time.Now,
+	}
 }
 
 // The choices a sender has (PROTOCOL.md section 7).
@@ -55,6 +62,9 @@ type Server struct {
 	reports *limiter
 	mux     *http.ServeMux
 
+	live      *liveHub
+	liveLimit *limiter
+
 	completing sync.Mutex // assembling an upload happens once, even if "complete" arrives twice
 }
 
@@ -70,7 +80,8 @@ func New(cfg Config) (*Server, error) {
 		return nil, err
 	}
 	s := &Server{cfg: cfg, store: st, blobs: &blobs{root: filepath.Join(cfg.DataDir, "blobs")},
-		uploads: newLimiter(cfg.UploadsPerHour, time.Hour, cfg.Now), reports: newLimiter(10, time.Hour, cfg.Now), mux: http.NewServeMux()}
+		uploads: newLimiter(cfg.UploadsPerHour, time.Hour, cfg.Now), reports: newLimiter(10, time.Hour, cfg.Now),
+		liveLimit: newLimiter(30, time.Hour, cfg.Now), mux: http.NewServeMux()}
 	s.routes()
 	return s, nil
 }
@@ -99,6 +110,8 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("GET /api/v1/uploads/{id}", s.uploadStatus)
 	s.mux.HandleFunc("POST /api/v1/uploads/{id}/complete", s.completeUpload)
 	s.downloadRoutes()
+	s.requestRoutes()
+	s.liveRoutes()
 	if s.cfg.Web != nil {
 		s.webRoutes()
 	}
