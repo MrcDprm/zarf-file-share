@@ -111,6 +111,10 @@ func TestPasswordNeedsBothTheLinkAndThePassword(t *testing.T) {
 	if _, _, err := openAll(env, LinkKey(link)); !errors.Is(err, ErrWrongKey) {
 		t.Fatalf("link without password: got %v", err)
 	}
+	h, err := ReadHeader(bytes.NewReader(env))
+	if err != nil || h.KeyMatches(PasswordKey(link, "yanlış şifre", a)) || !h.KeyMatches(PasswordKey(link, "doğru şifre", a)) {
+		t.Fatalf("KeyMatches: %v", err)
+	}
 	// The reader takes the settings from the header.
 	r, err := Open(bytes.NewReader(env), func(h *Header) ([]byte, error) { return PasswordKey(link, "doğru şifre", h.Argon), nil })
 	if err != nil || r.Header.Argon.MemoryKiB != 256 {

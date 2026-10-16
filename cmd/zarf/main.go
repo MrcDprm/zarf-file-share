@@ -1,5 +1,5 @@
-// Command zarf sends and receives end-to-end encrypted files. For now it encrypts and
-// decrypts files locally; sending through a server comes next.
+// Command zarf sends and receives end-to-end encrypted files, through a Zarf server or as
+// local encrypted files.
 package main
 
 import (
@@ -19,28 +19,35 @@ var version = "dev"
 const usage = `zarf: end-to-end encrypted file sharing
 
 Usage:
-  zarf encrypt [-p] [-o OUT] FILE      encrypt FILE into FILE.zarf and print its key
+  zarf send [-p] [--expires 1h|1d|7d] [--downloads 1|5|10|20] FILE
+                                       upload FILE (1024 MB at most) and print its link
+  zarf receive LINK [-d DIR]           download and decrypt a file from a link
+  zarf delete LINK DELETE-CODE         delete a sent file before it expires
+  zarf encrypt [-p] [-o OUT] FILE      encrypt FILE into FILE.zarf locally and print its key
   zarf decrypt [--key KEY] [-d DIR] FILE.zarf
-                                       decrypt into DIR (default: the current folder)
   zarf version
 
 Options:
   -p             also protect the file with a password (asked twice, never shown)
+  --expires      how long the link works (default 1d)
+  --downloads    how many times it can be downloaded (default 1)
+  --server URL   the Zarf server (default https://zarf.miracdeprem.com, or $ZARF_SERVER)
+  -d DIR         folder for received files; existing files are never overwritten
   -o OUT         where to write the encrypted file
   --key KEY      the key, or the whole link; asked for when left out
-  -d DIR         folder for the decrypted file; existing files are never overwritten
 `
 
 // app holds what a command talks to, so tests can run commands without a terminal.
 type app struct {
-	in     *bufio.Reader
-	out    io.Writer
-	errOut io.Writer
-	secret func(prompt string) (string, error) // reads a key or password without showing it
+	in       *bufio.Reader
+	out      io.Writer
+	errOut   io.Writer
+	secret   func(prompt string) (string, error) // reads a key or password without showing it
+	progress io.Writer                           // progress lines; nil when not a terminal
 }
 
 func main() {
-	a := &app{in: bufio.NewReader(os.Stdin), out: os.Stdout, errOut: os.Stderr}
+	a := &app{in: bufio.NewReader(os.Stdin), out: os.Stdout, errOut: os.Stderr, progress: terminalProgress()}
 	a.secret = a.terminalSecret
 	os.Exit(a.run(os.Args[1:]))
 }
@@ -52,6 +59,12 @@ func (a *app) run(args []string) int {
 	}
 	var err error
 	switch args[0] {
+	case "send":
+		err = a.send(args[1:])
+	case "receive":
+		err = a.receive(args[1:])
+	case "delete":
+		err = a.remove(args[1:])
 	case "encrypt":
 		err = a.encrypt(args[1:])
 	case "decrypt":

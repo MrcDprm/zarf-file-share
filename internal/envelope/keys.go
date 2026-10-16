@@ -75,3 +75,10 @@ func RequestKey(priv *ecdh.PrivateKey, peer *ecdh.PublicKey, ephPub, reqPub []by
 func DownloadAuth(fileKey []byte) ([]byte, error) {
 	return hkdf.Key(sha256.New, fileKey, nil, "zarf v1 download auth", 32)
 }
+
+// KeyMatches checks an input key against the header's commitment without touching any
+// ciphertext, so a reader can ask for a password again instead of failing the whole file.
+func (h *Header) KeyMatches(ikm []byte) bool {
+	k, err := deriveKeys(h.Salt[:], ikm)
+	return err == nil && hmac.Equal(commitment(k.commit, h), h.Commitment[:])
+}
