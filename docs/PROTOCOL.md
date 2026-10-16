@@ -161,9 +161,9 @@ All paths start with `/api/v1`. Bodies are JSON unless noted. Errors are `{"erro
 | `PUT /uploads/{id}/parts/{n}` (binary, `Authorization: Bearer upload_token`) | Store part `n` (8 MiB, the last may be shorter). Repeating a part is allowed. |
 | `GET /uploads/{id}` (upload token) | Which parts arrived, so an interrupted upload resumes. |
 | `POST /uploads/{id}/complete` (upload token) | Check every part is there and the total size matches; publish. |
-| `GET /files/{id}` | `{size, expires_at, downloads_left, mode}` — no secrets. |
+| `GET /files/{id}` | `{size, expires_at, downloads_left}` — no secrets. `404` if it never existed, `410` if it expired or was used up. |
 | `POST /files/{id}/download` `{dl_auth}` | Spend one download; returns a short-lived `ticket`. |
-| `GET /files/{id}/content?ticket=...` | The envelope bytes; `Range` requests allowed for resuming. |
+| `GET /files/{id}/content` (`Authorization: Bearer ticket`) | The envelope bytes; `Range` requests allowed for resuming. The ticket travels in a header, never in the address, so it stays out of logs. |
 | `DELETE /files/{id}` (`Authorization: Bearer delete_token`) | Delete now. |
 | `POST /files/{id}/report` `{reason}` | Report abuse to the operator. |
 

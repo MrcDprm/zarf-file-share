@@ -65,7 +65,7 @@ func (s *Server) createUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	now := s.cfg.Now()
+	now := s.cfg.Now().Truncate(time.Second) // the database keeps whole seconds
 	uploadToken, deleteToken := randomToken(32), randomToken(32)
 	f := &fileRow{
 		ID: newID(), Size: req.Size, PartSize: s.cfg.PartSize,

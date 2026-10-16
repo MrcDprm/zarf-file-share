@@ -49,6 +49,7 @@ type Server struct {
 	store   *store
 	blobs   *blobs
 	uploads *limiter
+	reports *limiter
 	mux     *http.ServeMux
 
 	completing sync.Mutex // assembling an upload happens once, even if "complete" arrives twice
@@ -66,20 +67,26 @@ func New(cfg Config) (*Server, error) {
 		return nil, err
 	}
 	s := &Server{cfg: cfg, store: st, blobs: &blobs{root: filepath.Join(cfg.DataDir, "blobs")},
-		uploads: newLimiter(cfg.UploadsPerHour, time.Hour, cfg.Now), mux: http.NewServeMux()}
+		uploads: newLimiter(cfg.UploadsPerHour, time.Hour, cfg.Now), reports: newLimiter(10, time.Hour, cfg.Now), mux: http.NewServeMux()}
 	s.routes()
 	return s, nil
 }
 
 func (s *Server) Close() error { return s.store.close() }
 
-func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) { s.mux.ServeHTTP(w, r) }
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	h := w.Header()
+	h.Set("X-Content-Type-Options", "nosniff")
+	h.Set("Referrer-Policy", "no-referrer")
+	s.mux.ServeHTTP(w, r)
+}
 
 func (s *Server) routes() {
 	s.mux.HandleFunc("POST /api/v1/uploads", s.createUpload)
 	s.mux.HandleFunc("PUT /api/v1/uploads/{id}/parts/{n}", s.putPart)
 	s.mux.HandleFunc("GET /api/v1/uploads/{id}", s.uploadStatus)
 	s.mux.HandleFunc("POST /api/v1/uploads/{id}/complete", s.completeUpload)
+	s.downloadRoutes()
 }
 
 // --- small helpers ---
