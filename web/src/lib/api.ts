@@ -84,6 +84,8 @@ export const fileInfo = (id: string) => call<FileInfo>("GET", `/files/${id}`);
 export const startDownload = (id: string, dlAuth: Uint8Array) =>
   call<{ ticket: string; size: number }>("POST", `/files/${id}/download`, { json: { dl_auth: toB64u(dlAuth) } });
 
+export const reportFile = (id: string, reason: string) => call<void>("POST", `/files/${id}/report`, { json: { reason } });
+
 export const deleteFile = (id: string, deleteToken: string) => call<void>("DELETE", `/files/${id}`, { token: deleteToken });
 
 /**

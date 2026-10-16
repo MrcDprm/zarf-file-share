@@ -95,6 +95,28 @@ body {
   padding: 1.25rem 1.25rem 3rem;
 }
 
+.page--narrow {
+  max-width: 40rem;
+}
+.facts {
+  margin: 1rem 0 0;
+  color: var(--ink-soft);
+}
+.unlock {
+  margin-top: 1.5rem;
+}
+.unlock .field {
+  flex: 1 1 14rem;
+  max-width: none;
+}
+.unlock .button,
+.page--narrow main > .button {
+  margin-top: 0;
+}
+.page--narrow main > .button {
+  margin-top: 1.5rem;
+}
+
 /* Wide screens: the form on the left, the slip and the log beside it. */
 .layout {
   display: grid;
@@ -315,10 +337,16 @@ h1 {
   -webkit-mask: url(./tint.svg) repeat;
   mask: url(./tint.svg) repeat;
 }
-/* The transition belongs to sealing only, so nothing slides while the page loads or resets. */
+/* The transition belongs to sealing and opening only, so nothing slides while the page loads or resets. */
 .is-sealed .window__cover {
   transform: none;
   transition: transform 700ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+.is-instant .window__cover {
+  transition: none;
+}
+.is-opening .window__cover {
+  transition: transform 900ms cubic-bezier(0.65, 0, 0.35, 1);
 }
 .status {
   margin: 0.9rem 0 0;
