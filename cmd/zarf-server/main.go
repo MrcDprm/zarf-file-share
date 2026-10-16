@@ -23,12 +23,13 @@ var version = "dev"
 const usage = `zarf-server: the Zarf server
 
 Usage:
-  zarf-server [serve] [-addr ADDR] [-data DIR] [-stun ADDR|off] [-trust-proxy]
+  zarf-server [serve] [-addr ADDR] [-data DIR] [-quota GB] [-stun ADDR|off] [-trust-proxy]
   zarf-server reports [-data DIR]       list abuse reports
   zarf-server remove [-data DIR] ID     remove a file now
   zarf-server version
 
-Every option can also come from the environment: ZARF_ADDR, ZARF_DATA, ZARF_STUN, ZARF_TRUST_PROXY=1.
+Every option can also come from the environment: ZARF_ADDR, ZARF_DATA, ZARF_QUOTA_GB, ZARF_STUN, ZARF_TRUST_PROXY=1.
+-quota is the space all stored files may take together, in GB (default 100); keep it below the free disk space.
 -stun is the UDP address of the STUN responder for direct live connections (default :3478).
 `
 
@@ -45,8 +46,16 @@ func main() {
 	addr := fs.String("addr", env("ZARF_ADDR", "127.0.0.1:8080"), "")
 	data := fs.String("data", env("ZARF_DATA", "data"), "")
 	stun := fs.String("stun", env("ZARF_STUN", ":3478"), "")
+	quota := fs.Int64("quota", 100, "")
 	trustProxy := fs.Bool("trust-proxy", os.Getenv("ZARF_TRUST_PROXY") == "1", "")
+	if v := os.Getenv("ZARF_QUOTA_GB"); v != "" {
+		args = append([]string{"-quota", v}, args...)
+	}
 	_ = fs.Parse(args)
+	if *quota < 1 {
+		fmt.Fprintln(os.Stderr, "zarf-server: -quota must be at least 1 (GB)")
+		os.Exit(2)
+	}
 
 	if cmd == "version" {
 		fmt.Println("zarf-server", version)
@@ -54,6 +63,7 @@ func main() {
 	}
 	cfg := server.DefaultConfig(*data)
 	cfg.TrustProxy = *trustProxy
+	cfg.StorageQuota = *quota * server.GB
 	cfg.Web = web.Files()
 	s, err := server.New(cfg)
 	if err != nil {
