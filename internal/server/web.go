@@ -25,6 +25,7 @@ var contentTypes = map[string]string{
 	".css":   "text/css; charset=utf-8",
 	".svg":   "image/svg+xml",
 	".woff2": "font/woff2",
+	".sh":    "text/plain; charset=utf-8",
 }
 
 // webRoutes serves the built interface: "/" sends a file, "/d/{id}" receives one, "/r/{rid}"
@@ -34,6 +35,8 @@ func (s *Server) webRoutes() {
 	s.mux.HandleFunc("GET /d/{id}", s.serveFile("d.html", "no-cache"))
 	s.mux.HandleFunc("GET /r/{rid}", s.serveFile("r.html", "no-cache"))
 	s.mux.HandleFunc("GET /favicon.svg", s.serveFile("favicon.svg", "no-cache"))
+	// The command line installer for macOS and Linux: curl -fsSL https://<host>/install.sh | sh
+	s.mux.HandleFunc("GET /install.sh", s.serveFile("install.sh", "no-cache"))
 	s.mux.HandleFunc("GET /assets/{name}", func(w http.ResponseWriter, r *http.Request) {
 		// Asset names carry a hash of their content, so a browser may keep them for good.
 		s.serveFile("assets/"+r.PathValue("name"), "public, max-age=31536000, immutable")(w, r)
