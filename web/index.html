@@ -337,10 +337,35 @@
           <h2 id="cli-title" class="section-title" data-i18n="cli.title">Komut satırından da çalışır</h2>
           <p data-i18n="cli.text"></p>
           <p class="cli__label" data-i18n="cli.download"></p>
-          <div class="downloads">
-            <a class="dl" href="https://github.com/MrcDprm/zarf-file-share/releases/latest">Windows</a>
-            <a class="dl" href="https://github.com/MrcDprm/zarf-file-share/releases/latest">macOS</a>
-            <a class="dl" href="https://github.com/MrcDprm/zarf-file-share/releases/latest">Linux</a>
+          <div class="install">
+            <div class="install__tabs" role="tablist" data-i18n-aria="install.label" aria-label="Kurulum">
+              <button type="button" role="tab" class="install__tab" id="os-tab-windows" aria-controls="os-panel-windows" aria-selected="true" data-os-tab="windows">Windows</button>
+              <button type="button" role="tab" class="install__tab" id="os-tab-mac" aria-controls="os-panel-mac" aria-selected="false" tabindex="-1" data-os-tab="mac">macOS</button>
+              <button type="button" role="tab" class="install__tab" id="os-tab-linux" aria-controls="os-panel-linux" aria-selected="false" tabindex="-1" data-os-tab="linux">Linux</button>
+            </div>
+            <div class="install__panel" role="tabpanel" id="os-panel-windows" aria-labelledby="os-tab-windows" data-os-panel="windows">
+              <ol class="install__steps">
+                <li><a class="dl" href="https://github.com/MrcDprm/zarf-file-share/releases/latest/download/zarf-setup.exe" data-i18n="install.win.download">Kurulum dosyasını indir</a></li>
+                <li data-i18n="install.win.run"></li>
+                <li data-i18n="install.win.use"></li>
+              </ol>
+              <p class="install__note" data-i18n="install.win.note"></p>
+            </div>
+            <div class="install__panel" role="tabpanel" id="os-panel-mac" aria-labelledby="os-tab-mac" data-os-panel="mac" hidden>
+              <ol class="install__steps">
+                <li data-i18n="install.mac.open"></li>
+                <li><span data-i18n="install.paste"></span><div class="install__cmd"><code>curl -fsSL https://zarf.miracdeprem.com/install.sh | sh</code><button type="button" class="install__copy" data-install-copy data-i18n="cli.copy">Kopyala</button></div></li>
+                <li data-i18n="install.unix.use"></li>
+              </ol>
+            </div>
+            <div class="install__panel" role="tabpanel" id="os-panel-linux" aria-labelledby="os-tab-linux" data-os-panel="linux" hidden>
+              <ol class="install__steps">
+                <li data-i18n="install.linux.open"></li>
+                <li><span data-i18n="install.paste"></span><div class="install__cmd"><code>curl -fsSL https://zarf.miracdeprem.com/install.sh | sh</code><button type="button" class="install__copy" data-install-copy data-i18n="cli.copy">Kopyala</button></div></li>
+                <li data-i18n="install.unix.use"></li>
+              </ol>
+            </div>
+            <p class="install__all"><a href="https://github.com/MrcDprm/zarf-file-share/releases/latest" data-i18n="install.all">Bütün indirmeler ve sağlama toplamları</a></p>
           </div>
           <p class="cli__note" data-i18n="cmd.lead"></p>
         </div>

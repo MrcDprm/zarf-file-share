@@ -1586,3 +1586,97 @@ h3,
     margin: -2.25rem -2.25rem 2rem;
   }
 }
+
+/* --- installing the command line tool: one tab per system --- */
+.install {
+  margin-bottom: 1.25rem;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--panel);
+  overflow: hidden;
+}
+.install__tabs {
+  display: flex;
+  border-bottom: 1px solid var(--rule);
+}
+.install__tab {
+  flex: 1;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 0.65rem 0.5rem 0.6rem;
+  cursor: pointer;
+}
+.install__tab:hover {
+  color: var(--ink);
+}
+.install__tab[aria-selected="true"] {
+  color: var(--ink);
+  border-bottom-color: var(--blue);
+}
+.install__tab:focus-visible,
+.install__copy:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: -3px;
+}
+.install__panel {
+  padding: 1rem 1.1rem 1.1rem;
+}
+.install__steps {
+  margin: 0;
+  padding-left: 1.3rem;
+  display: grid;
+  gap: 0.7rem;
+}
+.install__steps li::marker {
+  color: var(--blue);
+  font-weight: 700;
+}
+.install__steps .dl {
+  display: inline-block;
+}
+.install__cmd {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.45rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 6px;
+  background: #111827;
+  color: #e4e9f1;
+}
+.install__cmd code {
+  flex: 1;
+  min-width: 0;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+.install__copy {
+  flex: none;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #8fb0e0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.install__note {
+  margin: 0.9rem 0 0;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+}
+.install__all {
+  margin: 0;
+  padding: 0.6rem 1.1rem 0.8rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.88rem;
+}
+.install__all a {
+  color: var(--blue);
+}

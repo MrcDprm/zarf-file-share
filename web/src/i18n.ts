@@ -173,7 +173,7 @@ const tr = {
   "cli.title": "Komut satırından da çalışır",
   "cli.text": "Tarayıcıda gönderilen bir dosya komut satırında, komut satırından gönderilen bir dosya tarayıcıda açılır. İkisi aynı şifreli biçimi kullanır.",
   "cli.copy": "Kopyala",
-  "cli.download": "Komut satırı aracını indir",
+  "cli.download": "Kur",
   "foot.text": "Zarf açık kaynaklıdır.",
   "recv.title": "Sana bir zarf gönderildi.",
   "recv.facts": "{size}. {date} tarihine kadar açılabilir, {n} indirme hakkı kaldı.",
@@ -261,6 +261,16 @@ const tr = {
   "hero.f2.v": "şifreli bayt görür",
   "hero.f3.k": "Hesap",
   "hero.f3.v": "gerekmez",
+  "install.label": "İşletim sistemine göre kurulum",
+  "install.win.download": "Kurulum dosyasını indir",
+  "install.win.run": "zarf-setup.exe'yi aç ve kur. Yönetici izni gerekmez.",
+  "install.win.use": "Başlat menüsünden \"Zarf\"ı aç ya da herhangi bir PowerShell penceresinde zarf yaz. Örnek: zarf send rapor.pdf",
+  "install.win.note": "Windows \"bilgisayarınız korundu\" derse: Ek bilgi, sonra Yine de çalıştır. Kurulum dosyası imzasız olduğu için çıkıyor.",
+  "install.mac.open": "Terminal'i aç: Cmd + Boşluk, Terminal yaz, Enter.",
+  "install.linux.open": "Bir terminal aç.",
+  "install.paste": "Şu satırı yapıştırıp Enter'a bas:",
+  "install.unix.use": "Kurulunca her terminalde zarf yazman yeter. Örnek: zarf send rapor.pdf",
+  "install.all": "Bütün indirmeler ve sağlama toplamları",
 };
 
 type Key = keyof typeof tr;
@@ -435,7 +445,7 @@ const en: Record<Key, string> = {
   "cli.title": "It works from the command line too",
   "cli.text": "A file sent from the browser opens on the command line, and the other way round. Both use the same encrypted format.",
   "cli.copy": "Copy",
-  "cli.download": "Download the command line tool",
+  "cli.download": "Install",
   "foot.text": "Zarf is open source.",
   "recv.title": "Someone sent you an envelope.",
   "recv.facts": "{size}. It can be opened until {date}, {n} download(s) left.",
@@ -523,6 +533,16 @@ const en: Record<Key, string> = {
   "hero.f2.v": "sees encrypted bytes",
   "hero.f3.k": "Account",
   "hero.f3.v": "not needed",
+  "install.label": "Install for your system",
+  "install.win.download": "Download the installer",
+  "install.win.run": "Open zarf-setup.exe and install. No administrator rights needed.",
+  "install.win.use": "Open \"Zarf\" from the Start menu, or type zarf in any PowerShell window. Example: zarf send report.pdf",
+  "install.win.note": "If Windows says it protected your PC: More info, then Run anyway. It appears because the installer is not signed.",
+  "install.mac.open": "Open Terminal: Cmd + Space, type Terminal, press Enter.",
+  "install.linux.open": "Open a terminal.",
+  "install.paste": "Paste this line and press Enter:",
+  "install.unix.use": "Once installed, type zarf in any terminal. Example: zarf send report.pdf",
+  "install.all": "All downloads and checksums",
 };
 
 const dictionaries: Record<Lang, Record<Key, string>> = { tr, en };

@@ -1,7 +1,7 @@
 // The send page: language, theme, the three ways to send, the form and the log.
 
 import "./styles.css";
-import { apply, lang, setLang } from "./i18n.ts";
+import { apply, lang, setLang, t } from "./i18n.ts";
 import { initTheme } from "./theme.ts";
 import { initSend } from "./send.ts";
 import { render as renderLog } from "./log.ts";
@@ -44,6 +44,42 @@ addEventListener("hashchange", () => {
   if (location.hash in modeOfHash || location.hash === "#link") showMode(modeOfHash[location.hash] ?? "link");
 });
 
+
+// The installer box: one tab per system, opening on the visitor's own.
+const osTabs = [...document.querySelectorAll<HTMLButtonElement>("[data-os-tab]")];
+function showOS(tab: HTMLButtonElement, focus = false): void {
+  for (const t of osTabs) {
+    const on = t === tab;
+    t.setAttribute("aria-selected", String(on));
+    t.tabIndex = on ? 0 : -1;
+    document.querySelector<HTMLElement>(`[data-os-panel="${t.dataset.osTab}"]`)!.hidden = !on;
+  }
+  if (focus) tab.focus();
+}
+osTabs.forEach((tab, i) => {
+  tab.addEventListener("click", () => showOS(tab));
+  tab.addEventListener("keydown", (e) => {
+    const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+    if (!step) return;
+    e.preventDefault();
+    showOS(osTabs[(i + step + osTabs.length) % osTabs.length]!, true);
+  });
+});
+const platform = navigator.userAgent;
+const mine = /Mac OS X|Macintosh/.test(platform) && !/iPhone|iPad/.test(platform) ? "mac" : /Linux|X11/.test(platform) && !/Android/.test(platform) ? "linux" : "windows";
+showOS(osTabs.find((t) => t.dataset.osTab === mine) ?? osTabs[0]!);
+document.querySelectorAll<HTMLButtonElement>("[data-install-copy]").forEach((button) =>
+  button.addEventListener("click", async () => {
+    const code = button.parentElement!.querySelector("code")!;
+    try {
+      await navigator.clipboard.writeText(code.textContent ?? "");
+      button.textContent = t("receipt.copied");
+      setTimeout(() => (button.textContent = t("cli.copy")), 2000);
+    } catch {
+      getSelection()?.selectAllChildren(code); // clipboard blocked: select it for a manual copy
+    }
+  }),
+);
 
 // The command reference: one tab per way of sending, with arrow keys between tabs.
 const cmdTabs = [...document.querySelectorAll<HTMLButtonElement>("[data-cmd-tab]")];
