@@ -26,13 +26,14 @@
         </button>
       </header>
 
+      <div class="workspace">
+      <nav class="modes" data-i18n-aria="modes.label" aria-label="Gönderme yolu">
+        <a class="mode" href="#link" aria-current="page" data-mode="link" data-i18n="mode.link">Link ile gönder</a>
+        <a class="mode" href="#iste" data-mode="request" data-i18n="mode.request">Dosya iste</a>
+        <a class="mode" href="#kod" data-mode="live" data-i18n="mode.live">Kodla gönder</a>
+      </nav>
       <div class="layout">
         <main class="main">
-          <nav class="modes" data-i18n-aria="modes.label" aria-label="Gönderme yolu">
-            <a class="mode" href="#link" aria-current="page" data-mode="link" data-i18n="mode.link">Link ile gönder</a>
-            <a class="mode" href="#iste" data-mode="request" data-i18n="mode.request">Dosya iste</a>
-            <a class="mode" href="#kod" data-mode="live" data-i18n="mode.live">Kodla gönder</a>
-          </nav>
 
           <!-- Link mode -->
           <section data-panel="link">
@@ -225,89 +226,116 @@
           </section>
         </aside>
       </div>
+      </div>
+
+      <section class="how" aria-labelledby="how-title">
+        <h2 id="how-title" class="section-title" data-i18n="how.title">Nasıl çalışır</h2>
+        <ol class="how__steps">
+          <li><span class="how__num" aria-hidden="true">1</span><h3 data-i18n="how.1.title"></h3><p data-i18n="how.1.text"></p></li>
+          <li><span class="how__num" aria-hidden="true">2</span><h3 data-i18n="how.2.title"></h3><p data-i18n="how.2.text"></p></li>
+          <li><span class="how__num" aria-hidden="true">3</span><h3 data-i18n="how.3.title"></h3><p data-i18n="how.3.text"></p></li>
+        </ol>
+      </section>
 
       <section class="uses" aria-labelledby="uses-title">
-        <h2 id="uses-title" data-i18n="uses.title">Ne zaman işine yarar</h2>
+        <h2 id="uses-title" class="section-title" data-i18n="uses.title">Ne zaman işine yarar</h2>
         <div class="uses__grid">
-          <article>
+          <article class="use">
+            <p class="use__mode" data-i18n="mode.request"></p>
             <h3 data-i18n="uses.a.title"></h3>
             <p data-i18n="uses.a.text"></p>
             <a href="#iste" data-mode-link="request" data-i18n="uses.a.link"></a>
           </article>
-          <article>
+          <article class="use">
+            <p class="use__mode" data-i18n="mode.link"></p>
             <h3 data-i18n="uses.b.title"></h3>
             <p data-i18n="uses.b.text"></p>
             <a href="#link" data-mode-link="link" data-i18n="uses.b.link"></a>
+          </article>
+          <article class="use">
+            <p class="use__mode" data-i18n="mode.live"></p>
+            <h3 data-i18n="uses.c.title"></h3>
+            <p data-i18n="uses.c.text"></p>
+            <a href="#kod" data-mode-link="live" data-i18n="uses.c.link"></a>
           </article>
         </div>
         <p class="kvkk"><strong data-i18n="kvkk.lead">KVKK.</strong> <span data-i18n="kvkk.text"></span></p>
       </section>
 
       <section class="cli" aria-labelledby="cli-title">
-        <h2 id="cli-title" data-i18n="cli.title">Komut satırından da çalışır</h2>
-        <p data-i18n="cli.text"></p>
-        <div class="command">
-          <code data-command>zarf send rapor.pdf</code>
-          <button type="button" class="copy" data-copy-command data-i18n="cli.copy">Kopyala</button>
+        <div class="cli__intro">
+          <h2 id="cli-title" class="section-title" data-i18n="cli.title">Komut satırından da çalışır</h2>
+          <p data-i18n="cli.text"></p>
+          <p class="cli__label" data-i18n="cli.download"></p>
+          <div class="downloads">
+            <a class="dl" href="https://github.com/MrcDprm/zarf-file-share/releases/latest">Windows</a>
+            <a class="dl" href="https://github.com/MrcDprm/zarf-file-share/releases/latest">macOS</a>
+            <a class="dl" href="https://github.com/MrcDprm/zarf-file-share/releases/latest">Linux</a>
+          </div>
+          <p class="cli__note" data-i18n="cmd.lead"></p>
         </div>
-        <p class="downloads">
-          <span data-i18n="cli.download">İndir:</span>
-          <a href="https://github.com/MrcDprm/zarf-file-share/releases/latest">Windows</a>,
-          <a href="https://github.com/MrcDprm/zarf-file-share/releases/latest">macOS</a>,
-          <a href="https://github.com/MrcDprm/zarf-file-share/releases/latest">Linux</a>
-        </p>
-        <div class="commands" aria-labelledby="commands-title">
-          <h3 id="commands-title" data-i18n="cmd.title">Komutlar</h3>
-          <p class="commands__lead" data-i18n="cmd.lead"></p>
-          <h4 class="commands__group" data-i18n="cmd.link">Link ile gönderme</h4>
-          <dl class="commands__list">
-            <div><dt><code data-i18n="cmd.send.code">zarf send rapor.pdf</code></dt><dd data-i18n="cmd.send">Dosyayı şifreler, yükler ve linkini yazar. -p bir de şifre sorar; --expires 1h, 1d ya da 7d ve --downloads 1, 5, 10 ya da 20 süreyi ve indirme sayısını belirler.</dd></div>
-            <div><dt><code data-i18n="cmd.receive.code">zarf receive LİNK</code></dt><dd data-i18n="cmd.receive">Linkteki dosyayı indirir, açar ve bulunduğun klasöre kaydeder; -d KLASÖR ile başka bir yere. Var olan bir dosyanın üzerine asla yazmaz.</dd></div>
-            <div><dt><code data-i18n="cmd.delete.code">zarf delete LİNK SİLME-KODU</code></dt><dd data-i18n="cmd.delete">Gönderdiğin dosyayı süresi dolmadan siler. Silme kodu, gönderirken ekrana yazılır.</dd></div>
-          </dl>
-          <h4 class="commands__group" data-i18n="cmd.request">Dosya isteme</h4>
-          <dl class="commands__list">
-            <div><dt><code data-i18n="cmd.request_new.code">zarf request new --note "vergi levhası"</code></dt><dd data-i18n="cmd.request_new">Dosya istemek için bir istek linki oluşturur. Gelenleri açan anahtar sadece bu bilgisayarda kalır.</dd></div>
-            <div><dt><code data-i18n="cmd.send_to.code">zarf send --to İSTEK-LİNKİ belge.pdf</code></dt><dd data-i18n="cmd.send_to">Sana gönderilen bir istek linkine dosya yükler; onu sadece isteyen kişi açabilir.</dd></div>
-            <div><dt><code data-i18n="cmd.request_list.code">zarf request list</code></dt><dd data-i18n="cmd.request_list">Bu bilgisayardaki isteklerini ve her birine kaç dosya geldiğini gösterir.</dd></div>
-            <div><dt><code data-i18n="cmd.request_get.code">zarf request get KİMLİK</code></dt><dd data-i18n="cmd.request_get">Bir isteğe gelen yeni dosyaları indirip açar. Kimliğin ilk birkaç harfi yeterli.</dd></div>
-            <div><dt><code data-i18n="cmd.request_close.code">zarf request close KİMLİK</code></dt><dd data-i18n="cmd.request_close">İsteği kapatır ve gelen dosyaları sunucudan siler.</dd></div>
-          </dl>
-          <h4 class="commands__group" data-i18n="cmd.live">Kodla gönderme</h4>
-          <dl class="commands__list">
-            <div><dt><code data-i18n="cmd.send_code.code">zarf send --code sunum.pptx</code></dt><dd data-i18n="cmd.send_code">Kısa bir kod yazar ve bekler; alıcı kodu girip kabul edince dosya gider.</dd></div>
-            <div><dt><code data-i18n="cmd.receive_code.code">zarf receive 7-elma-kule</code></dt><dd data-i18n="cmd.receive_code">Kodla gönderilen dosyayı alır. Önce adını ve boyutunu gösterip onay ister; -y ile sormadan alır.</dd></div>
-          </dl>
-          <h4 class="commands__group" data-i18n="cmd.local">Sunucusuz, bu bilgisayarda</h4>
-          <dl class="commands__list">
-            <div><dt><code data-i18n="cmd.encrypt.code">zarf encrypt rapor.pdf</code></dt><dd data-i18n="cmd.encrypt">Dosyayı hiçbir yere göndermeden rapor.pdf.zarf olarak şifreler ve açacak anahtarı yazar.</dd></div>
-            <div><dt><code data-i18n="cmd.decrypt.code">zarf decrypt rapor.pdf.zarf</code></dt><dd data-i18n="cmd.decrypt">Şifreli dosyayı anahtarıyla açar; anahtarı sorar, yazdıkların ekranda görünmez.</dd></div>
-          </dl>
+        <div class="term">
+          <div class="term__bar" role="tablist" data-i18n-aria="cmd.title" aria-label="Komutlar">
+              <button type="button" role="tab" class="term__tab" id="cmd-tab-link" aria-controls="cmd-panel-link" aria-selected="true" data-cmd-tab="link" data-i18n="cmd.tab.link"></button>
+              <button type="button" role="tab" class="term__tab" id="cmd-tab-request" aria-controls="cmd-panel-request" aria-selected="false" tabindex="-1" data-cmd-tab="request" data-i18n="cmd.tab.request"></button>
+              <button type="button" role="tab" class="term__tab" id="cmd-tab-live" aria-controls="cmd-panel-live" aria-selected="false" tabindex="-1" data-cmd-tab="live" data-i18n="cmd.tab.live"></button>
+              <button type="button" role="tab" class="term__tab" id="cmd-tab-local" aria-controls="cmd-panel-local" aria-selected="false" tabindex="-1" data-cmd-tab="local" data-i18n="cmd.tab.local"></button>
+          </div>
+            <div class="term__panel" role="tabpanel" id="cmd-panel-link" aria-labelledby="cmd-tab-link" data-cmd-panel="link">
+              <ul class="term__list">
+                <li><code data-i18n="cmd.send.code"></code><p data-i18n="cmd.send"></p></li>
+                <li><code data-i18n="cmd.receive.code"></code><p data-i18n="cmd.receive"></p></li>
+                <li><code data-i18n="cmd.delete.code"></code><p data-i18n="cmd.delete"></p></li>
+              </ul>
+            </div>
+            <div class="term__panel" role="tabpanel" id="cmd-panel-request" aria-labelledby="cmd-tab-request" data-cmd-panel="request" hidden>
+              <ul class="term__list">
+                <li><code data-i18n="cmd.request_new.code"></code><p data-i18n="cmd.request_new"></p></li>
+                <li><code data-i18n="cmd.send_to.code"></code><p data-i18n="cmd.send_to"></p></li>
+                <li><code data-i18n="cmd.request_list.code"></code><p data-i18n="cmd.request_list"></p></li>
+                <li><code data-i18n="cmd.request_get.code"></code><p data-i18n="cmd.request_get"></p></li>
+                <li><code data-i18n="cmd.request_close.code"></code><p data-i18n="cmd.request_close"></p></li>
+              </ul>
+            </div>
+            <div class="term__panel" role="tabpanel" id="cmd-panel-live" aria-labelledby="cmd-tab-live" data-cmd-panel="live" hidden>
+              <ul class="term__list">
+                <li><code data-i18n="cmd.send_code.code"></code><p data-i18n="cmd.send_code"></p></li>
+                <li><code data-i18n="cmd.receive_code.code"></code><p data-i18n="cmd.receive_code"></p></li>
+              </ul>
+            </div>
+            <div class="term__panel" role="tabpanel" id="cmd-panel-local" aria-labelledby="cmd-tab-local" data-cmd-panel="local" hidden>
+              <ul class="term__list">
+                <li><code data-i18n="cmd.encrypt.code"></code><p data-i18n="cmd.encrypt"></p></li>
+                <li><code data-i18n="cmd.decrypt.code"></code><p data-i18n="cmd.decrypt"></p></li>
+              </ul>
+            </div>
         </div>
       </section>
-
-      <footer class="foot">
-        <p class="foot__note"><span data-i18n="foot.text">Zarf açık kaynaklıdır.</span></p>
-        <!-- Every live project links to the others; this one is marked as the current page. -->
-        <nav class="foot__projects" aria-label="Projelerim" data-i18n-aria="foot.projects">
-          <a href="https://zarf.miracdeprem.com" aria-current="page">Zarf</a>
-          <a href="https://spygame.miracdeprem.com">Casus</a>
-          <a href="https://seans.miracdeprem.com">Seans</a>
-          <a href="https://kvkk.miracdeprem.com">KVKK Assistant</a>
-          <a href="https://crypto.miracdeprem.com">Crypto Toolkit</a>
-          <a href="https://sahaf.miracdeprem.com">Sahaf</a>
-          <a href="https://tictactoe.miracdeprem.com">Tic-Tac-Toe</a>
-          <a href="https://hangman.miracdeprem.com">Hangman</a>
-          <a href="https://quiz.miracdeprem.com">Quiz App</a>
-          <a href="https://weather.miracdeprem.com">Weather App</a>
-        </nav>
-        <p class="foot__meta">
-          <span>© 2026 Miraç Deprem</span>
-          <a href="https://www.miracdeprem.com" data-i18n="foot.portfolio">Portfolyo</a>
-          <a href="https://github.com/MrcDprm/zarf-file-share" data-i18n="foot.source">Kaynak kodu</a>
-        </p>
-      </footer>
     </div>
+
+    <footer class="foot">
+      <div class="foot__inner">
+          <p class="foot__note"><span data-i18n="foot.text">Zarf açık kaynaklıdır.</span></p>
+          <!-- Every live project links to the others; this one is marked as the current page. -->
+          <nav class="foot__projects" aria-label="Projelerim" data-i18n-aria="foot.projects">
+            <a href="https://zarf.miracdeprem.com" aria-current="page">Zarf</a>
+            <a href="https://spygame.miracdeprem.com">Casus</a>
+            <a href="https://seans.miracdeprem.com">Seans</a>
+            <a href="https://kvkk.miracdeprem.com">KVKK Assistant</a>
+            <a href="https://crypto.miracdeprem.com">Crypto Toolkit</a>
+            <a href="https://sahaf.miracdeprem.com">Sahaf</a>
+            <a href="https://tictactoe.miracdeprem.com">Tic-Tac-Toe</a>
+            <a href="https://hangman.miracdeprem.com">Hangman</a>
+            <a href="https://quiz.miracdeprem.com">Quiz App</a>
+            <a href="https://weather.miracdeprem.com">Weather App</a>
+          </nav>
+          <p class="foot__meta">
+            <span>© 2026 Miraç Deprem</span>
+            <a href="https://www.miracdeprem.com" data-i18n="foot.portfolio">Portfolyo</a>
+            <a href="https://github.com/MrcDprm/zarf-file-share" data-i18n="foot.source">Kaynak kodu</a>
+          </p>
+      </div>
+    </footer>
 
     <!-- The carrier pigeon that takes a finished envelope away. Decorative only. -->
     <div class="flight" aria-hidden="true" hidden data-flight>

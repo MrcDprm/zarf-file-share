@@ -40,9 +40,25 @@ showMode(modeOfHash[location.hash] ?? "link");
 addEventListener("hashchange", () => showMode(modeOfHash[location.hash] ?? "link"));
 
 
-$("[data-copy-command]").addEventListener("click", (e) => {
-  navigator.clipboard?.writeText($("[data-command]").textContent ?? "").catch(() => {});
-  (e.currentTarget as HTMLElement).blur();
+// The command reference: one tab per way of sending, with arrow keys between tabs.
+const cmdTabs = [...document.querySelectorAll<HTMLButtonElement>("[data-cmd-tab]")];
+function showCommands(tab: HTMLButtonElement, focus = false): void {
+  for (const t of cmdTabs) {
+    const on = t === tab;
+    t.setAttribute("aria-selected", String(on));
+    t.tabIndex = on ? 0 : -1;
+    document.querySelector<HTMLElement>(`[data-cmd-panel="${t.dataset.cmdTab}"]`)!.hidden = !on;
+  }
+  if (focus) tab.focus();
+}
+cmdTabs.forEach((tab, i) => {
+  tab.addEventListener("click", () => showCommands(tab));
+  tab.addEventListener("keydown", (e) => {
+    const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+    if (!step) return;
+    e.preventDefault();
+    showCommands(cmdTabs[(i + step + cmdTabs.length) % cmdTabs.length]!, true);
+  });
 });
 
 initSend();

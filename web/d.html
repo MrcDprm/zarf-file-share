@@ -25,7 +25,7 @@
         </button>
       </header>
 
-      <main>
+      <main class="workspace workspace--single">
         <h1 data-i18n="recv.title">Sana bir zarf gönderildi.</h1>
 
         <div class="envelope is-sealed is-instant" data-envelope>
@@ -55,28 +55,31 @@
         <p class="note" data-report-row hidden><button type="button" class="pick" data-report data-i18n="recv.report">Bu dosyayı kötüye kullanım olarak bildir</button></p>
       </main>
 
-      <footer class="foot">
-        <p class="foot__note"><span data-i18n="foot.text">Zarf açık kaynaklıdır.</span> <a href="/" data-i18n="recv.own">Sen de bir dosya gönder.</a></p>
-        <!-- Every live project links to the others; this one is marked as the current page. -->
-        <nav class="foot__projects" aria-label="Projelerim" data-i18n-aria="foot.projects">
-          <a href="https://zarf.miracdeprem.com" aria-current="page">Zarf</a>
-          <a href="https://spygame.miracdeprem.com">Casus</a>
-          <a href="https://seans.miracdeprem.com">Seans</a>
-          <a href="https://kvkk.miracdeprem.com">KVKK Assistant</a>
-          <a href="https://crypto.miracdeprem.com">Crypto Toolkit</a>
-          <a href="https://sahaf.miracdeprem.com">Sahaf</a>
-          <a href="https://tictactoe.miracdeprem.com">Tic-Tac-Toe</a>
-          <a href="https://hangman.miracdeprem.com">Hangman</a>
-          <a href="https://quiz.miracdeprem.com">Quiz App</a>
-          <a href="https://weather.miracdeprem.com">Weather App</a>
-        </nav>
-        <p class="foot__meta">
-          <span>© 2026 Miraç Deprem</span>
-          <a href="https://www.miracdeprem.com" data-i18n="foot.portfolio">Portfolyo</a>
-          <a href="https://github.com/MrcDprm/zarf-file-share" data-i18n="foot.source">Kaynak kodu</a>
-        </p>
-      </footer>
     </div>
+
+    <footer class="foot">
+      <div class="foot__inner">
+          <p class="foot__note"><span data-i18n="foot.text">Zarf açık kaynaklıdır.</span> <a href="/" data-i18n="recv.own">Sen de bir dosya gönder.</a></p>
+          <!-- Every live project links to the others; this one is marked as the current page. -->
+          <nav class="foot__projects" aria-label="Projelerim" data-i18n-aria="foot.projects">
+            <a href="https://zarf.miracdeprem.com" aria-current="page">Zarf</a>
+            <a href="https://spygame.miracdeprem.com">Casus</a>
+            <a href="https://seans.miracdeprem.com">Seans</a>
+            <a href="https://kvkk.miracdeprem.com">KVKK Assistant</a>
+            <a href="https://crypto.miracdeprem.com">Crypto Toolkit</a>
+            <a href="https://sahaf.miracdeprem.com">Sahaf</a>
+            <a href="https://tictactoe.miracdeprem.com">Tic-Tac-Toe</a>
+            <a href="https://hangman.miracdeprem.com">Hangman</a>
+            <a href="https://quiz.miracdeprem.com">Quiz App</a>
+            <a href="https://weather.miracdeprem.com">Weather App</a>
+          </nav>
+          <p class="foot__meta">
+            <span>© 2026 Miraç Deprem</span>
+            <a href="https://www.miracdeprem.com" data-i18n="foot.portfolio">Portfolyo</a>
+            <a href="https://github.com/MrcDprm/zarf-file-share" data-i18n="foot.source">Kaynak kodu</a>
+          </p>
+      </div>
+    </footer>
     <script type="module" src="/src/receive.ts"></script>
   </body>
 </html>
