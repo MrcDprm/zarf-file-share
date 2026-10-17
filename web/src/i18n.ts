@@ -245,6 +245,21 @@ const tr = {
   "cmd.tab.request": "İstek",
   "cmd.tab.live": "Kod",
   "cmd.tab.local": "Yerel",
+  "nav.label": "Sayfa",
+  "nav.send": "Gönder",
+  "nav.how": "Nasıl çalışır",
+  "nav.cli": "Komut satırı",
+  "hero.eyebrow": "Uçtan uca şifreli dosya gönderme",
+  "hero.title": "Dosyan zarfta, anahtarı sende.",
+  "hero.lead": "Dosya bu cihazda şifrelenir; sunucu sadece okuyamadığı baytları taşır. Hesap açmadan link ile gönder, birinden dosya iste ya da kısa bir kodla anında yolla.",
+  "hero.cta": "Dosya gönder",
+  "hero.how": "Nasıl çalışır",
+  "hero.f1.k": "Anahtar",
+  "hero.f1.v": "sadece linkte",
+  "hero.f2.k": "Sunucu",
+  "hero.f2.v": "şifreli bayt görür",
+  "hero.f3.k": "Hesap",
+  "hero.f3.v": "gerekmez",
 };
 
 type Key = keyof typeof tr;
@@ -491,6 +506,21 @@ const en: Record<Key, string> = {
   "cmd.tab.request": "Request",
   "cmd.tab.live": "Code",
   "cmd.tab.local": "Local",
+  "nav.label": "Page",
+  "nav.send": "Send",
+  "nav.how": "How it works",
+  "nav.cli": "Command line",
+  "hero.eyebrow": "End-to-end encrypted file sharing",
+  "hero.title": "Your file sealed, the key with you.",
+  "hero.lead": "The file is encrypted on this device; the server only carries bytes it cannot read. No account needed: send a link, ask someone for files, or send right away with a short code.",
+  "hero.cta": "Send a file",
+  "hero.how": "How it works",
+  "hero.f1.k": "Key",
+  "hero.f1.v": "only in the link",
+  "hero.f2.k": "Server",
+  "hero.f2.v": "sees encrypted bytes",
+  "hero.f3.k": "Account",
+  "hero.f3.v": "not needed",
 };
 
 const dictionaries: Record<Lang, Record<Key, string>> = { tr, en };

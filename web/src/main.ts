@@ -32,12 +32,17 @@ document.querySelectorAll<HTMLAnchorElement>("[data-mode], [data-mode-link]").fo
     e.preventDefault();
     showMode(a.dataset.mode ?? a.dataset.modeLink!);
     history.replaceState(null, "", a.getAttribute("href"));
-    scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    $("#gonder").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   }),
 );
 showMode(modeOfHash[location.hash] ?? "link");
+// A link straight to a way of sending (#iste, #kod) opens at the panel, not at the top.
+if (location.hash in modeOfHash) $("#gonder").scrollIntoView();
 // Back and forward, or a hand-typed #kod, switch the tab too.
-addEventListener("hashchange", () => showMode(modeOfHash[location.hash] ?? "link"));
+// The page's own anchors (#nasil, #komut) leave the tab as it is.
+addEventListener("hashchange", () => {
+  if (location.hash in modeOfHash || location.hash === "#link") showMode(modeOfHash[location.hash] ?? "link");
+});
 
 
 // The command reference: one tab per way of sending, with arrow keys between tabs.

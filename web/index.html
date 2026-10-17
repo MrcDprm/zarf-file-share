@@ -19,6 +19,11 @@
           </svg>
           Zarf
         </a>
+        <nav class="top__nav" data-i18n-aria="nav.label" aria-label="Sayfa">
+          <a href="#gonder" data-i18n="nav.send">Gönder</a>
+          <a href="#nasil" data-i18n="nav.how">Nasıl çalışır</a>
+          <a href="#komut" data-i18n="nav.cli">Komut satırı</a>
+        </nav>
         <button type="button" class="icon-btn" data-lang data-i18n="lang.code" data-i18n-aria="lang.switch">EN</button>
         <button type="button" class="icon-btn" data-theme-toggle data-i18n-aria="theme.toggle" aria-label="Temayı değiştir">
           <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" /></svg>
@@ -26,7 +31,72 @@
         </button>
       </header>
 
-      <div class="workspace">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero__text">
+          <p class="hero__eyebrow" data-i18n="hero.eyebrow">Uçtan uca şifreli dosya gönderme</p>
+          <h1 id="hero-title" class="hero__title" data-i18n="hero.title">Dosyan zarfta, anahtarı sende.</h1>
+          <p class="hero__lead" data-i18n="hero.lead"></p>
+          <div class="hero__actions">
+            <a class="button" href="#gonder" data-i18n="hero.cta">Dosya gönder</a>
+            <a class="button button--ghost" href="#nasil" data-i18n="hero.how">Nasıl çalışır</a>
+          </div>
+          <dl class="hero__facts">
+            <div><dt data-i18n="hero.f1.k">Anahtar</dt><dd data-i18n="hero.f1.v">sadece linkte</dd></div>
+            <div><dt data-i18n="hero.f2.k">Sunucu</dt><dd data-i18n="hero.f2.v">şifreli bayt görür</dd></div>
+            <div><dt data-i18n="hero.f3.k">Hesap</dt><dd data-i18n="hero.f3.v">gerekmez</dd></div>
+          </dl>
+        </div>
+        <div class="hero__art" aria-hidden="true">
+          <svg class="art" viewBox="0 0 560 420">
+            <defs>
+              <pattern id="art-tint" width="18" height="10" patternUnits="userSpaceOnUse">
+                <path class="art-tint" d="M0 5 Q4.5 0 9 5 T18 5" />
+              </pattern>
+              <pattern id="art-air" width="24" height="24" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <rect class="art-air-red" width="8" height="24" />
+                <rect class="art-air-blue" x="12" width="8" height="24" />
+              </pattern>
+              <clipPath id="art-front"><rect x="40" y="96" width="470" height="290" rx="12" /></clipPath>
+            </defs>
+            <g class="art-back" transform="rotate(5 300 230)">
+              <rect class="art-paper art-paper--back" x="60" y="70" width="460" height="285" rx="12" />
+            </g>
+            <g transform="rotate(-3 280 240)">
+              <rect class="art-shadow" x="46" y="104" width="470" height="290" rx="12" />
+              <rect class="art-paper" x="40" y="96" width="470" height="290" rx="12" />
+              <g clip-path="url(#art-front)">
+                <rect x="40" y="96" width="470" height="290" fill="url(#art-tint)" class="art-tintfill" />
+                <path class="art-fold" d="M40 386 L230 250 M510 386 L320 250" />
+                <path class="art-airmail" fill-rule="evenodd" d="M40 96 h470 v290 h-470 z M50 106 v270 h450 v-270 z" />
+              </g>
+              <rect class="art-window" x="78" y="196" width="282" height="112" rx="8" />
+              <text class="art-label" x="98" y="222">5a415246 010110b0</text>
+              <text class="art-hex" x="98" y="248">d045bcf8 cb46ca0e</text>
+              <text class="art-hex" x="98" y="270">fc03bb31 debec65b</text>
+              <text class="art-hex" x="98" y="292">f0f5cdc7 cbcbdc2c</text>
+              <g transform="rotate(4 440 160)">
+                <rect class="art-stamp" x="398" y="122" width="86" height="104" rx="2" />
+                <rect class="art-stamp-in" x="407" y="131" width="68" height="86" rx="1" />
+                <path class="art-stamp-mark" d="M420 160 h42 v28 h-42 z M420 160 l21 16 l21 -16" />
+                <text class="art-stamp-text" x="441" y="208" text-anchor="middle">ZARF</text>
+              </g>
+              <g class="art-postmark" transform="rotate(-12 392 196)">
+                <circle cx="372" cy="196" r="34" />
+                <circle cx="372" cy="196" r="26" />
+                <text x="372" y="193" text-anchor="middle">AES</text>
+                <text x="372" y="207" text-anchor="middle">256</text>
+                <path d="M412 178 q10 -6 20 0 t20 0 t20 0 M412 190 q10 -6 20 0 t20 0 t20 0 M412 202 q10 -6 20 0 t20 0 t20 0" />
+              </g>
+              <g class="art-seal">
+                <circle cx="440" cy="330" r="30" />
+                <path class="art-seal-mark" d="M428 331 l8 8 l16 -18" />
+              </g>
+            </g>
+          </svg>
+        </div>
+      </section>
+
+      <div class="workspace" id="gonder">
       <nav class="modes" data-i18n-aria="modes.label" aria-label="Gönderme yolu">
         <a class="mode" href="#link" aria-current="page" data-mode="link" data-i18n="mode.link">Link ile gönder</a>
         <a class="mode" href="#iste" data-mode="request" data-i18n="mode.request">Dosya iste</a>
@@ -37,7 +107,7 @@
 
           <!-- Link mode -->
           <section data-panel="link">
-            <h1 data-i18n="link.title">Dosyayı sadece alıcının açabileceği şekilde gönder.</h1>
+            <h2 class="panel-title" data-i18n="link.title">Dosyayı sadece alıcının açabileceği şekilde gönder.</h2>
 
             <form class="send" data-send novalidate>
               <input type="file" class="visually-hidden" tabindex="-1" data-file-input />
@@ -105,7 +175,7 @@
 
           <!-- Request mode -->
           <section data-panel="request" hidden>
-            <h1 data-i18n="request.title">Birinden dosya iste; sadece sen açabil.</h1>
+            <h2 class="panel-title" data-i18n="request.title">Birinden dosya iste; sadece sen açabil.</h2>
             <p class="lead" data-i18n="request.lead"></p>
 
             <form class="ask" data-ask novalidate>
@@ -160,7 +230,7 @@
 
           <!-- Live mode -->
           <section data-panel="live" hidden>
-            <h1 data-i18n="live.title">Karşındakiyle aynı anda, kısa bir kodla gönder.</h1>
+            <h2 class="panel-title" data-i18n="live.title">Karşındakiyle aynı anda, kısa bir kodla gönder.</h2>
             <p class="lead" data-i18n="live.lead"></p>
 
             <div class="live">
@@ -228,7 +298,7 @@
       </div>
       </div>
 
-      <section class="how" aria-labelledby="how-title">
+      <section class="how" id="nasil" aria-labelledby="how-title">
         <h2 id="how-title" class="section-title" data-i18n="how.title">Nasıl çalışır</h2>
         <ol class="how__steps">
           <li><span class="how__num" aria-hidden="true">1</span><h3 data-i18n="how.1.title"></h3><p data-i18n="how.1.text"></p></li>
@@ -241,19 +311,19 @@
         <h2 id="uses-title" class="section-title" data-i18n="uses.title">Ne zaman işine yarar</h2>
         <div class="uses__grid">
           <article class="use">
-            <p class="use__mode" data-i18n="mode.request"></p>
+            <div class="use__head"><svg class="use__icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 18 l4-11 h14 l4 11 v7 H5 z M5 18 h7 l1.5 3 h5 l1.5-3 h7 M16 4 v9 M12.5 9.5 L16 13 l3.5-3.5" /></svg><p class="use__mode" data-i18n="mode.request"></p></div>
             <h3 data-i18n="uses.a.title"></h3>
             <p data-i18n="uses.a.text"></p>
             <a href="#iste" data-mode-link="request" data-i18n="uses.a.link"></a>
           </article>
           <article class="use">
-            <p class="use__mode" data-i18n="mode.link"></p>
+            <div class="use__head"><svg class="use__icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M13.5 18.5 l5-5 M11 14 l-3 3 a5 5 0 0 0 7 7 l3-3 M21 18 l3-3 a5 5 0 0 0-7-7 l-3 3" /></svg><p class="use__mode" data-i18n="mode.link"></p></div>
             <h3 data-i18n="uses.b.title"></h3>
             <p data-i18n="uses.b.text"></p>
             <a href="#link" data-mode-link="link" data-i18n="uses.b.link"></a>
           </article>
           <article class="use">
-            <p class="use__mode" data-i18n="mode.live"></p>
+            <div class="use__head"><svg class="use__icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 7 h22 v14 H14 l-6 5 v-5 H5 z M10 14 h2 M15 14 h2 M20 14 h2" /></svg><p class="use__mode" data-i18n="mode.live"></p></div>
             <h3 data-i18n="uses.c.title"></h3>
             <p data-i18n="uses.c.text"></p>
             <a href="#kod" data-mode-link="live" data-i18n="uses.c.link"></a>
@@ -262,7 +332,7 @@
         <p class="kvkk"><strong data-i18n="kvkk.lead">KVKK.</strong> <span data-i18n="kvkk.text"></span></p>
       </section>
 
-      <section class="cli" aria-labelledby="cli-title">
+      <section class="cli" id="komut" aria-labelledby="cli-title">
         <div class="cli__intro">
           <h2 id="cli-title" class="section-title" data-i18n="cli.title">Komut satırından da çalışır</h2>
           <p data-i18n="cli.text"></p>
