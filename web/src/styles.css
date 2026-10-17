@@ -1323,7 +1323,8 @@ h3,
   .top__nav {
     display: flex;
   }
-  .top > .icon-btn[data-lang] {
+  /* With the page links shown, they push the buttons to the right instead. */
+  .top:has(.top__nav) > .icon-btn[data-lang] {
     margin-left: 0;
   }
 }
@@ -1574,4 +1575,14 @@ h3,
   overflow-wrap: normal;
   overflow-x: auto;
   font-size: clamp(1.25rem, 4.5vw, 1.75rem);
+}
+
+/* On the receiving and upload pages the panel has padding: the stripes still run along its edge. */
+.workspace--single::before {
+  margin: -1.75rem -1.25rem 1.75rem;
+}
+@media (min-width: 40rem) {
+  .workspace--single::before {
+    margin: -2.25rem -2.25rem 2rem;
+  }
 }

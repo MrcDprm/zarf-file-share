@@ -49,6 +49,7 @@ async function showFacts(): Promise<void> {
   $("[data-asked]").hidden = !info.label;
   $("[data-facts]").textContent = t("give.facts", { date: formatDate(new Date(info.expires_at)), n: info.uploads_left });
   $("[data-fp]").textContent = await fingerprint(reqPub, lang);
+  document.querySelectorAll<HTMLElement>("[data-fp-row]").forEach((row) => (row.hidden = false));
 }
 
 document.addEventListener("zarf:lang", () => {
