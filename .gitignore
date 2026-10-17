@@ -27,3 +27,7 @@ web/dist/*
 Thumbs.db
 .vscode/
 .idea/
+
+# Windows installer build output
+installer/build/
+installer/Output/
