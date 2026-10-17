@@ -158,7 +158,6 @@ func TestBadInputsGiveClearErrors(t *testing.T) {
 		code int
 		msg  string
 	}{
-		"no command":      {nil, 2, "Usage"},
 		"unknown command": {[]string{"gonder"}, 2, "unknown command"},
 		"not a key":       {[]string{"decrypt", "--key", "abc", filepath.Join(dir, "x")}, 1, ""},
 		"a folder":        {[]string{"encrypt", dir}, 1, "folders are not supported"},
@@ -174,22 +173,22 @@ func TestBadInputsGiveClearErrors(t *testing.T) {
 	}
 }
 
-// Double-clicked on Windows, the tool explains where it runs and waits instead of vanishing.
-func TestDoubleClickExplainsAndWaits(t *testing.T) {
+// With no command the tool shows a short start; double-clicked on Windows, it also waits.
+func TestNoCommandWelcomes(t *testing.T) {
 	a, out, _ := testApp(t)
 	a.in = bufio.NewReader(strings.NewReader("\n"))
 	a.alone = func() bool { return true }
 	if code := a.run(nil); code != 0 {
 		t.Fatalf("exit code %d", code)
 	}
-	for _, want := range []string{"command line tool", "komut satırı aracıdır", `.\zarf.exe help`, "Enter"} {
+	for _, want := range []string{"zarf send rapor.pdf", "Kodla gönder", "zarf help", "Start menu", "Enter"} {
 		if !strings.Contains(out.String(), want) {
 			t.Errorf("missing %q in:\n%s", want, out)
 		}
 	}
-	// From a terminal, no arguments still print the usage and fail.
-	b, _, errOut := testApp(t)
-	if code := b.run(nil); code != 2 || !strings.Contains(errOut.String(), "Usage:") {
-		t.Errorf("from a terminal: %d %s", code, errOut)
+	// From a terminal: the same start, no waiting.
+	b, out2, _ := testApp(t)
+	if code := b.run(nil); code != 0 || !strings.Contains(out2.String(), "zarf help") || strings.Contains(out2.String(), "Enter") {
+		t.Errorf("from a terminal: %d %s", code, out2)
 	}
 }

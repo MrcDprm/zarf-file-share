@@ -70,14 +70,13 @@ func main() {
 
 func (a *app) run(args []string) int {
 	if len(args) == 0 {
-		// Double-clicked: explain where the tool runs, and keep the window open until Enter.
+		// No command: a short start, and when double-clicked, a window that waits for Enter.
+		fmt.Fprint(a.out, welcome)
 		if a.alone != nil && a.alone() {
 			fmt.Fprint(a.out, doubleClicked)
 			_, _ = a.in.ReadString('\n')
-			return 0
 		}
-		fmt.Fprint(a.errOut, usage)
-		return 2
+		return 0
 	}
 	var err error
 	switch args[0] {
@@ -112,21 +111,27 @@ func (a *app) run(args []string) int {
 	return 0
 }
 
-// doubleClicked is shown when the tool is opened from File Explorer, in English and Turkish.
-const doubleClicked = `Zarf is a command line tool: it runs in a terminal, not by double-clicking.
-Zarf bir komut satırı aracıdır: çift tıklayarak değil, terminalde çalışır.
+// welcome is what "zarf" with no command shows, in English and Turkish: the few commands
+// people need first, instead of the full usage.
+const welcome = `Zarf: end-to-end encrypted file sharing / uçtan uca şifreli dosya paylaşımı
 
-How to use it:
-  1. In File Explorer, open the folder with zarf.exe, click the address bar,
-     type powershell and press Enter.
-  2. In the window that opens, type:  .\zarf.exe help
-
-Nasıl kullanılır:
-  1. Dosya Gezgini'nde zarf.exe'nin olduğu klasörü aç, adres çubuğuna tıkla,
-     powershell yaz ve Enter'a bas.
-  2. Açılan pencerede şunu yaz:  .\zarf.exe help
+  Send a file / Dosya gönder                   zarf send rapor.pdf
+  Receive a file / Dosya al                    zarf receive LINK
+  Send with a code / Kodla gönder              zarf send --code rapor.pdf
+  Receive with a code / Kodla al               zarf receive 7-elma-kule
+  Ask someone for files / Birinden dosya iste  zarf request new --note "vergi levhası"
+  Every command / Bütün komutlar               zarf help
 
 Without the command line / Komut satırı olmadan: https://zarf.miracdeprem.com
+`
+
+// doubleClicked follows the welcome when the tool was opened from File Explorer: its window
+// closes when the tool ends, so it says where to type the commands.
+const doubleClicked = `
+This window is not a terminal. Open "Zarf" from the Start menu (after installing it),
+or type powershell in the address bar of this folder and run:  .\\zarf.exe
+Bu pencere bir terminal değil. Kurduysan Başlat menüsünden "Zarf"ı aç, kurmadıysan
+bu klasörün adres çubuğuna powershell yazıp şunu çalıştır:  .\\zarf.exe
 
 Press Enter to close. / Kapatmak için Enter'a bas.
 `
