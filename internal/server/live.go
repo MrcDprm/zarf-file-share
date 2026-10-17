@@ -29,6 +29,7 @@ const (
 	closePeerLeft       websocket.StatusCode = 4410 // the other side left: the channel is gone
 	closeExpired        websocket.StatusCode = 4408 // nobody joined in time
 	closeChannelLimit   websocket.StatusCode = 4413 // too long, or too many bytes
+	closeTooManyJoins   websocket.StatusCode = 4429 // this address tried too many channels
 )
 
 type liveChannel struct {
@@ -149,6 +150,12 @@ func (s *Server) joinLive(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	c.SetReadLimit(liveMaxMessage)
+	// Every join can end a channel (a wrong code closes it for good), so joins are limited per
+	// address: nobody can walk through the channel numbers and spoil other people's transfers.
+	if !s.liveJoins.allow(s.clientAddress(r)) {
+		c.Close(closeTooManyJoins, "")
+		return
+	}
 	n, err := strconv.Atoi(r.PathValue("channel"))
 	ch := s.live.get(n)
 	if err != nil || ch == nil {

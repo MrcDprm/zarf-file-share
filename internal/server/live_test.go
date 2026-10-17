@@ -155,11 +155,39 @@ func TestLiveLimits(t *testing.T) {
 	}
 	closedWith(t, receiver, closeChannelLimit)
 
+	// Walking through channel numbers is cut short.
+	for i := 0; i < 60; i++ {
+		dial(t, hs, 999, map[string]string{"t": "join", "role": "receive"}).CloseNow()
+	}
+	closedWith(t, dial(t, hs, 999, map[string]string{"t": "join", "role": "receive"}), closeTooManyJoins)
+
 	// A page from another site cannot open a channel.
 	n, _ = openChannel(t, s)
 	_, res, err := websocket.Dial(t.Context(), strings.Replace(hs.URL, "http", "ws", 1)+fmt.Sprintf("/api/v1/live/%d", n),
 		&websocket.DialOptions{HTTPHeader: http.Header{"Origin": {"https://evil.example"}}})
 	if err == nil || res == nil || res.StatusCode != http.StatusForbidden {
 		t.Errorf("cross-site WebSocket: %v %v", err, res)
+	}
+}
+
+// The real server has a read timeout for ordinary requests; a live session outlives it.
+func TestLiveOutlivesTheReadTimeout(t *testing.T) {
+	s, _ := newTestServer(t, func(c *Config) { c.Now = time.Now })
+	hs := httptest.NewUnstartedServer(s)
+	hs.Config.ReadTimeout = 500 * time.Millisecond
+	hs.Start()
+	t.Cleanup(hs.Close)
+
+	n, token := openChannel(t, s)
+	sender := dial(t, hs, n, map[string]string{"t": "join", "role": "send", "token": token})
+	receiver := dial(t, hs, n, map[string]string{"t": "join", "role": "receive"})
+	read(t, sender)
+	read(t, receiver)
+	time.Sleep(time.Second) // longer than the read timeout
+	if err := sender.Write(t.Context(), websocket.MessageText, []byte(`{"t":"pake"}`)); err != nil {
+		t.Fatal(err)
+	}
+	if _, msg, err := read(t, receiver); err != nil || string(msg) != `{"t":"pake"}` {
+		t.Fatalf("after the read timeout: %v %s", err, msg)
 	}
 }

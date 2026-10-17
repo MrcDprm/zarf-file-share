@@ -42,6 +42,8 @@ func (e *Error) Error() string {
 		return "the code doesn't match; the connection closed for safety, so a new code is needed"
 	case "declined":
 		return "the recipient declined the file"
+	case "too_many":
+		return "too many connection attempts from this address; try again in a while"
 	case "damaged":
 		return "the file was changed or damaged on the way; nothing was saved"
 	}
@@ -50,7 +52,7 @@ func (e *Error) Error() string {
 
 func fail(p string) error { return &Error{p} }
 
-var closeProblems = map[websocket.StatusCode]string{4404: "unknown_channel", 4400: "unknown_channel", 4409: "taken", 4410: "peer_left", 4413: "limit", 4408: "expired"}
+var closeProblems = map[websocket.StatusCode]string{4404: "unknown_channel", 4400: "unknown_channel", 4409: "taken", 4410: "peer_left", 4413: "limit", 4408: "expired", 4429: "too_many"}
 
 // Conn is the part of a WebSocket the protocol uses.
 type Conn interface {

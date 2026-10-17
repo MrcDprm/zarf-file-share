@@ -64,6 +64,7 @@ type Server struct {
 
 	live      *liveHub
 	liveLimit *limiter
+	liveJoins *limiter
 
 	completing sync.Mutex // assembling an upload happens once, even if "complete" arrives twice
 }
@@ -81,7 +82,7 @@ func New(cfg Config) (*Server, error) {
 	}
 	s := &Server{cfg: cfg, store: st, blobs: &blobs{root: filepath.Join(cfg.DataDir, "blobs")},
 		uploads: newLimiter(cfg.UploadsPerHour, time.Hour, cfg.Now), reports: newLimiter(10, time.Hour, cfg.Now),
-		liveLimit: newLimiter(30, time.Hour, cfg.Now), mux: http.NewServeMux()}
+		liveLimit: newLimiter(30, time.Hour, cfg.Now), liveJoins: newLimiter(60, time.Hour, cfg.Now), mux: http.NewServeMux()}
 	s.routes()
 	return s, nil
 }

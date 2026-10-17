@@ -17,6 +17,7 @@ export type LiveProblem =
   | "peer_left" // the other side closed the page or lost the connection
   | "limit" // too long or too large for the relay
   | "expired" // nobody joined in time
+  | "too_many" // this address tried too many channels
   | "wrong_code" // the codes did not match: the channel is closed for good
   | "declined" // the receiver said no
   | "damaged" // the envelope did not verify
@@ -31,7 +32,7 @@ export class LiveError extends Error {
   }
 }
 
-const closeProblems: Record<number, LiveProblem> = { 4404: "unknown_channel", 4409: "taken", 4400: "unknown_channel", 4410: "peer_left", 4413: "limit", 4408: "expired" };
+const closeProblems: Record<number, LiveProblem> = { 4404: "unknown_channel", 4409: "taken", 4400: "unknown_channel", 4410: "peer_left", 4413: "limit", 4408: "expired", 4429: "too_many" };
 
 /** The part of a WebSocket or an RTCDataChannel this module uses, so tests can pass a stand-in. */
 export interface SocketLike {
