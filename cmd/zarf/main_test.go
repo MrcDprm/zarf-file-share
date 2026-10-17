@@ -173,3 +173,23 @@ func TestBadInputsGiveClearErrors(t *testing.T) {
 		t.Error("a short key was accepted")
 	}
 }
+
+// Double-clicked on Windows, the tool explains where it runs and waits instead of vanishing.
+func TestDoubleClickExplainsAndWaits(t *testing.T) {
+	a, out, _ := testApp(t)
+	a.in = bufio.NewReader(strings.NewReader("\n"))
+	a.alone = func() bool { return true }
+	if code := a.run(nil); code != 0 {
+		t.Fatalf("exit code %d", code)
+	}
+	for _, want := range []string{"command line tool", "komut satırı aracıdır", `.\zarf.exe help`, "Enter"} {
+		if !strings.Contains(out.String(), want) {
+			t.Errorf("missing %q in:\n%s", want, out)
+		}
+	}
+	// From a terminal, no arguments still print the usage and fail.
+	b, _, errOut := testApp(t)
+	if code := b.run(nil); code != 2 || !strings.Contains(errOut.String(), "Usage:") {
+		t.Errorf("from a terminal: %d %s", code, errOut)
+	}
+}

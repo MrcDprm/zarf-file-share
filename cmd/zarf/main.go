@@ -56,6 +56,7 @@ type app struct {
 	errOut    io.Writer
 	secret    func(prompt string) (string, error) // reads a key or password without showing it
 	progress  io.Writer                           // progress lines; nil when not a terminal
+	alone     func() bool                         // opened by double-clicking (Windows)
 	configDir func() (string, error)              // where requests' keys are kept
 }
 
@@ -63,11 +64,18 @@ func main() {
 	a := &app{in: bufio.NewReader(os.Stdin), out: os.Stdout, errOut: os.Stderr, progress: terminalProgress()}
 	a.secret = a.terminalSecret
 	a.configDir = os.UserConfigDir
+	a.alone = startedOnItsOwn
 	os.Exit(a.run(os.Args[1:]))
 }
 
 func (a *app) run(args []string) int {
 	if len(args) == 0 {
+		// Double-clicked: explain where the tool runs, and keep the window open until Enter.
+		if a.alone != nil && a.alone() {
+			fmt.Fprint(a.out, doubleClicked)
+			_, _ = a.in.ReadString('\n')
+			return 0
+		}
 		fmt.Fprint(a.errOut, usage)
 		return 2
 	}
@@ -103,6 +111,25 @@ func (a *app) run(args []string) int {
 	}
 	return 0
 }
+
+// doubleClicked is shown when the tool is opened from File Explorer, in English and Turkish.
+const doubleClicked = `Zarf is a command line tool: it runs in a terminal, not by double-clicking.
+Zarf bir komut satırı aracıdır: çift tıklayarak değil, terminalde çalışır.
+
+How to use it:
+  1. In File Explorer, open the folder with zarf.exe, click the address bar,
+     type powershell and press Enter.
+  2. In the window that opens, type:  .\zarf.exe help
+
+Nasıl kullanılır:
+  1. Dosya Gezgini'nde zarf.exe'nin olduğu klasörü aç, adres çubuğuna tıkla,
+     powershell yaz ve Enter'a bas.
+  2. Açılan pencerede şunu yaz:  .\zarf.exe help
+
+Without the command line / Komut satırı olmadan: https://zarf.miracdeprem.com
+
+Press Enter to close. / Kapatmak için Enter'a bas.
+`
 
 // Prompts for secrets say that typing stays invisible, so nobody thinks the keyboard stopped working.
 const (

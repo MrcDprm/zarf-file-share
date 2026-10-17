@@ -6,9 +6,23 @@ import (
 	"os"
 	"strings"
 	"unicode/utf16"
+	"unsafe"
 
 	"golang.org/x/sys/windows"
 )
+
+var procGetConsoleProcessList = windows.NewLazySystemDLL("kernel32.dll").NewProc("GetConsoleProcessList")
+
+// startedOnItsOwn reports whether this program is alone on its console: it was opened by
+// double-clicking, not from a terminal, so its window closes the moment it exits.
+func startedOnItsOwn() bool {
+	if procGetConsoleProcessList.Find() != nil {
+		return false
+	}
+	ids := make([]uint32, 4)
+	n, _, _ := procGetConsoleProcessList.Call(uintptr(unsafe.Pointer(&ids[0])), uintptr(len(ids)))
+	return n == 1
+}
 
 // readConsoleSecret reads a line from the Windows console without showing it, as UTF-16 through
 // ReadConsoleW. Reading bytes instead (as term.ReadPassword does) gives them in the console's code
