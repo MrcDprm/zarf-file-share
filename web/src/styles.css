@@ -1561,3 +1561,17 @@ h3,
   stroke-linejoin: round;
   flex: none;
 }
+
+/* Request and live mode have no slip or log: their content takes the whole panel. */
+@media (min-width: 62rem) {
+  .layout:has(> .side[hidden]) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* A code is read out as one piece: it never breaks across lines. */
+.code {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  overflow-x: auto;
+  font-size: clamp(1.25rem, 4.5vw, 1.75rem);
+}
