@@ -43,7 +43,8 @@ say "Downloading $name ..."
 get "$base/$name.tar.gz" "$tmp/$name.tar.gz" || fail "download failed"
 get "$base/SHA256SUMS" "$tmp/SHA256SUMS" || fail "download failed"
 
-want="$(grep " $name.tar.gz\$" "$tmp/SHA256SUMS" | cut -d' ' -f1)"
+# A line is "<sum>  <file>", or "<sum> *<file>" when it was written in binary mode.
+want="$(awk -v f="$name.tar.gz" '{ n = $2; sub(/^\*/, "", n); if (n == f) print $1 }' "$tmp/SHA256SUMS")"
 [ -n "$want" ] || fail "$name.tar.gz is not in SHA256SUMS"
 [ "$(sum "$tmp/$name.tar.gz")" = "$want" ] || fail "checksum mismatch: the download is damaged or was changed"
 

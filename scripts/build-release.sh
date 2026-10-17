@@ -34,5 +34,6 @@ done
 powershell -NoProfile -File installer/build.ps1 -Version "$v"
 cp installer/Output/zarf-setup.exe dist/
 
-(cd dist && sha256sum zarf-* > SHA256SUMS)
+# The usual "<sum>  <file>" form; sha256sum on Windows would mark every file with "*".
+(cd dist && sha256sum zarf-* | sed 's/ \*/  /' > SHA256SUMS)
 ls -1 dist
