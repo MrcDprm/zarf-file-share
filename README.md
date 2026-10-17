@@ -84,6 +84,8 @@ Download `zarf` for Windows, macOS or Linux from the [latest release](https://gi
 go install github.com/MrcDprm/zarf-file-share/cmd/zarf@latest
 ```
 
+It runs in a terminal, not by double-clicking. On Windows, open the unpacked folder in File Explorer, type `powershell` in the address bar and press Enter, then run `.\zarf.exe help`. Pick `amd64` for most PCs and `arm64` only for ARM-based ones.
+
 ```bash
 zarf send report.pdf                          # prints a link
 zarf receive "https://zarf.miracdeprem.com/d/...#..."

@@ -84,6 +84,8 @@ Windows, macOS ya da Linux için `zarf` aracını [son sürümden](https://githu
 go install github.com/MrcDprm/zarf-file-share/cmd/zarf@latest
 ```
 
+Araç çift tıklayarak değil, terminalde çalışır. Windows'ta açtığın klasörde Dosya Gezgini'nin adres çubuğuna `powershell` yazıp Enter'a bas, sonra `.\zarf.exe help` çalıştır. Çoğu bilgisayar için `amd64`, sadece ARM işlemcili olanlar için `arm64` paketini seç.
+
 ```bash
 zarf send rapor.pdf                           # bir link yazar
 zarf receive "https://zarf.miracdeprem.com/d/...#..."
