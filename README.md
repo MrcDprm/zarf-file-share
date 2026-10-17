@@ -78,13 +78,19 @@ The quickest way to use Zarf is the [live site](https://zarf.miracdeprem.com).
 
 ### The command line tool
 
-Download `zarf` for Windows, macOS or Linux from the [latest release](https://github.com/MrcDprm/zarf-file-share/releases/latest), or build it with Go:
+**Windows:** download [zarf-setup.exe](https://github.com/MrcDprm/zarf-file-share/releases/latest/download/zarf-setup.exe) and install it (no administrator rights needed). Then open **Zarf** from the Start menu, or type `zarf` in any PowerShell or Command Prompt window. If Windows says it protected your PC, choose More info, then Run anyway: the installer is not signed.
+
+**macOS and Linux:** open a terminal and run
 
 ```bash
-go install github.com/MrcDprm/zarf-file-share/cmd/zarf@latest
+curl -fsSL https://zarf.miracdeprem.com/install.sh | sh
 ```
 
-It runs in a terminal, not by double-clicking. On Windows, open the unpacked folder in File Explorer, type `powershell` in the address bar and press Enter, then run `.\zarf.exe help`. Pick `amd64` for most PCs and `arm64` only for ARM-based ones.
+The script picks the right build, checks its SHA-256 and installs `zarf` in `~/.local/bin`, without administrator rights. Then type `zarf` in any terminal.
+
+With Go: `go install github.com/MrcDprm/zarf-file-share/cmd/zarf@latest`. Plain archives for every system are on the [release page](https://github.com/MrcDprm/zarf-file-share/releases/latest).
+
+`zarf` on its own shows the most used commands, in English and Turkish:
 
 ```bash
 zarf send report.pdf                          # prints a link

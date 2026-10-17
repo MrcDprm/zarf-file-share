@@ -78,13 +78,19 @@ Zarf'ı kullanmanın en hızlı yolu [canlı site](https://zarf.miracdeprem.com)
 
 ### Komut satırı aracı
 
-Windows, macOS ya da Linux için `zarf` aracını [son sürümden](https://github.com/MrcDprm/zarf-file-share/releases/latest) indir, ya da Go ile derle:
+**Windows:** [zarf-setup.exe](https://github.com/MrcDprm/zarf-file-share/releases/latest/download/zarf-setup.exe) dosyasını indir ve kur (yönetici izni gerekmez). Sonra Başlat menüsünden **Zarf**'ı aç ya da herhangi bir PowerShell veya Komut İstemi penceresinde `zarf` yaz. Windows "bilgisayarınız korundu" derse Ek bilgi, sonra Yine de çalıştır de: kurulum dosyası imzasız.
+
+**macOS ve Linux:** bir terminal açıp şunu çalıştır:
 
 ```bash
-go install github.com/MrcDprm/zarf-file-share/cmd/zarf@latest
+curl -fsSL https://zarf.miracdeprem.com/install.sh | sh
 ```
 
-Araç çift tıklayarak değil, terminalde çalışır. Windows'ta açtığın klasörde Dosya Gezgini'nin adres çubuğuna `powershell` yazıp Enter'a bas, sonra `.\zarf.exe help` çalıştır. Çoğu bilgisayar için `amd64`, sadece ARM işlemcili olanlar için `arm64` paketini seç.
+Betik doğru sürümü seçer, SHA-256'sını doğrular ve `zarf`'ı yönetici izni olmadan `~/.local/bin` klasörüne kurar. Sonra her terminalde `zarf` yazman yeter.
+
+Go ile: `go install github.com/MrcDprm/zarf-file-share/cmd/zarf@latest`. Her sistem için düz arşivler [sürüm sayfasında](https://github.com/MrcDprm/zarf-file-share/releases/latest).
+
+Tek başına `zarf`, en çok kullanılan komutları Türkçe ve İngilizce gösterir:
 
 ```bash
 zarf send rapor.pdf                           # bir link yazar
