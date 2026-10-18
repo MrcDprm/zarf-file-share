@@ -4,7 +4,8 @@
 export type Lang = "tr" | "en";
 
 const tr = {
-  "meta.title": "Zarf: dosyanı sadece alıcı açabilsin",
+  "meta.title": "Zarf: uçtan uca şifreli dosya gönderme",
+  "meta.description": "Dosyalar tarayıcında şifrelenir; sunucu ne içeriği ne de dosya adını görebilir. Link, istek linki ya da kısa bir kodla büyük dosya gönder. Ücretsiz, açık kaynak, komut satırı aracı da var.",
   "lang.code": "EN",
   "lang.switch": "Switch to English",
   "theme.toggle": "Temayı değiştir",
@@ -276,7 +277,8 @@ const tr = {
 type Key = keyof typeof tr;
 
 const en: Record<Key, string> = {
-  "meta.title": "Zarf: files only the recipient can open",
+  "meta.title": "Zarf: end-to-end encrypted file sharing",
+  "meta.description": "Files are encrypted in your browser; the server sees neither the content nor the file name. Send large files with a link, a request link or a short code. Free, open source, with a command line tool.",
   "lang.code": "TR",
   "lang.switch": "Türkçeye geç",
   "theme.toggle": "Change theme",
@@ -551,6 +553,9 @@ const STORE = "zarf-lang";
 export let lang: Lang = initialLang();
 
 function initialLang(): Lang {
+  // ?lang=en gives search engines an English address; it wins over the saved choice
+  const fromUrl = new URLSearchParams(location.search).get("lang");
+  if (fromUrl === "tr" || fromUrl === "en") return fromUrl;
   try {
     const saved = localStorage.getItem(STORE);
     if (saved === "tr" || saved === "en") return saved;
@@ -568,6 +573,9 @@ export function t(key: Key, vars: Record<string, string | number> = {}): string 
 export function apply(root: ParentNode = document): void {
   document.documentElement.lang = lang;
   document.title = t("meta.title");
+  // The home page has its own address per language; the receive pages have neither tag.
+  document.querySelector('meta[name="description"]')?.setAttribute("content", t("meta.description"));
+  document.querySelector('link[rel="canonical"]')?.setAttribute("href", `${location.origin}/${lang === "en" ? "?lang=en" : ""}`);
   root.querySelectorAll<HTMLElement>("[data-i18n]").forEach((el) => (el.textContent = t(el.dataset.i18n as Key)));
   root.querySelectorAll<HTMLElement>("[data-i18n-placeholder]").forEach((el) => el.setAttribute("placeholder", t(el.dataset.i18nPlaceholder as Key)));
   root.querySelectorAll<HTMLElement>("[data-i18n-aria]").forEach((el) => el.setAttribute("aria-label", t(el.dataset.i18nAria as Key)));
@@ -579,6 +587,12 @@ export function setLang(next: Lang): void {
     localStorage.setItem(STORE, next);
   } catch {
     /* storage blocked: it still changes for this page */
+  }
+  // Keep an explicit ?lang in the address in step with the choice
+  const url = new URL(location.href);
+  if (url.searchParams.has("lang")) {
+    url.searchParams.set("lang", next);
+    history.replaceState(history.state, "", url);
   }
   apply();
   document.dispatchEvent(new CustomEvent("zarf:lang"));
