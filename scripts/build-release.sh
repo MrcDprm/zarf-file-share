@@ -22,7 +22,18 @@ for target in windows/amd64 windows/arm64 darwin/amd64 darwin/arm64 linux/amd64 
   if [ "$os" = windows ]; then
     (cd dist && python -c "import shutil; shutil.make_archive('$name', 'zip', '.', '$name')")
   else
-    (cd dist && tar -czf "$name.tar.gz" "$name")
+    # Built on Windows, the files carry no execute bit and the local user name; set
+    # 0755 for zarf, 0644 for the rest and root as owner, so "./zarf" runs after tar xzf.
+    (cd dist && python -c "
+import tarfile
+def fix(ti):
+    ti.uid = ti.gid = 0
+    ti.uname = ti.gname = 'root'
+    ti.mode = 0o755 if ti.isdir() or ti.name.endswith('/zarf') else 0o644
+    return ti
+with tarfile.open('$name.tar.gz', 'w:gz') as t:
+    t.add('$name', filter=fix)
+")
   fi
   rm -rf "dist/$name"
 done
