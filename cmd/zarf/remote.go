@@ -44,7 +44,7 @@ func (a *app) send(args []string) error {
 	to := fs.String("to", "", "")
 	withCode := fs.Bool("code", false, "")
 	server := serverFlag(fs)
-	if err := fs.Parse(reorder(args, "p", "code")); err != nil || fs.NArg() != 1 {
+	if err := fs.Parse(reorder(fs, args)); err != nil || fs.NArg() != 1 {
 		return usageError{"usage: zarf send [-p] [--expires 1h|1d|7d] [--downloads 1|5|10|20] FILE\n       zarf send --to REQUEST-LINK FILE\n       zarf send --code FILE"}
 	}
 	switch {
@@ -229,7 +229,7 @@ func (a *app) receive(args []string) error {
 	dir := fs.String("d", ".", "")
 	yes := fs.Bool("y", false, "")
 	serverOpt := serverFlag(fs)
-	if err := fs.Parse(reorder(args, "y")); err != nil || fs.NArg() != 1 {
+	if err := fs.Parse(reorder(fs, args)); err != nil || fs.NArg() != 1 {
 		return usageError{"usage: zarf receive LINK [-d DIR]\n       zarf receive CODE [-d DIR] [-y]"}
 	}
 	// A code like 7-apple-tower, not a link: live mode.
