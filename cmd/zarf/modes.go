@@ -383,7 +383,7 @@ func (a *app) requestGet(args []string) error {
 	fs := flag.NewFlagSet("request get", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 	dir := fs.String("d", ".", "")
-	if err := fs.Parse(reorder(args)); err != nil || fs.NArg() != 1 {
+	if err := fs.Parse(reorder(fs, args)); err != nil || fs.NArg() != 1 {
 		return usageError{requestUsage}
 	}
 	r, err := a.findRequest(fs.Arg(0))

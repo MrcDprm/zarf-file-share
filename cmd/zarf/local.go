@@ -26,7 +26,7 @@ func (a *app) encrypt(args []string) error {
 	fs.SetOutput(io.Discard)
 	withPassword := fs.Bool("p", false, "")
 	out := fs.String("o", "", "")
-	if err := fs.Parse(reorder(args, "p")); err != nil || fs.NArg() != 1 {
+	if err := fs.Parse(reorder(fs, args)); err != nil || fs.NArg() != 1 {
 		return usageError{"usage: zarf encrypt [-p] [-o OUT] FILE"}
 	}
 	path := fs.Arg(0)
@@ -125,7 +125,7 @@ func (a *app) decrypt(args []string) error {
 	fs.SetOutput(io.Discard)
 	keyFlag := fs.String("key", "", "")
 	dir := fs.String("d", ".", "")
-	if err := fs.Parse(reorder(args)); err != nil || fs.NArg() != 1 {
+	if err := fs.Parse(reorder(fs, args)); err != nil || fs.NArg() != 1 {
 		return usageError{"usage: zarf decrypt [--key KEY] [-d DIR] FILE.zarf"}
 	}
 	in, err := os.Open(fs.Arg(0))
@@ -219,25 +219,48 @@ func mimeType(name string) string {
 }
 
 // reorder moves flags before the file name, so "zarf decrypt FILE --key K" works too
-// (the flag package stops at the first argument that is not a flag). Flags named in
-// switches take no value.
-func reorder(args []string, switches ...string) []string {
+// (the flag package stops at the first argument that is not a flag). Only flags defined
+// in fs are moved; anything else that starts with "-" is an argument, because request
+// ids, codes and file names can start with "-" too. Boolean flags take no value. The
+// "--" between the two parts stops the flag package from reading such arguments as flags.
+func reorder(fs *flag.FlagSet, args []string) []string {
 	var flags, rest []string
 	for i := 0; i < len(args); i++ {
-		if strings.HasPrefix(args[i], "-") && args[i] != "-" {
-			flags = append(flags, args[i])
-			name := strings.TrimLeft(args[i], "-")
-			isSwitch := false
-			for _, s := range switches {
-				isSwitch = isSwitch || name == s
-			}
-			if !isSwitch && !strings.Contains(args[i], "=") && i+1 < len(args) {
-				flags = append(flags, args[i+1])
-				i++
-			}
+		if args[i] == "--" {
+			rest = append(rest, args[i+1:]...)
+			break
+		}
+		f := lookupFlag(fs, args[i])
+		if f == nil {
+			rest = append(rest, args[i])
 			continue
 		}
-		rest = append(rest, args[i])
+		flags = append(flags, args[i])
+		if !isBoolFlag(f) && !strings.Contains(args[i], "=") {
+			if i+1 == len(args) {
+				return args // value missing: let the flag package report it, not take "--"
+			}
+			flags = append(flags, args[i+1])
+			i++
+		}
 	}
-	return append(flags, rest...)
+	return append(append(flags, "--"), rest...)
+}
+
+// lookupFlag returns the flag that arg names ("-d", "--key", "--key=K"), or nil.
+func lookupFlag(fs *flag.FlagSet, arg string) *flag.Flag {
+	if !strings.HasPrefix(arg, "-") {
+		return nil
+	}
+	name := strings.TrimPrefix(strings.TrimPrefix(arg, "-"), "-")
+	name, _, _ = strings.Cut(name, "=")
+	if name == "" {
+		return nil
+	}
+	return fs.Lookup(name)
+}
+
+func isBoolFlag(f *flag.Flag) bool {
+	b, ok := f.Value.(interface{ IsBoolFlag() bool })
+	return ok && b.IsBoolFlag()
 }
