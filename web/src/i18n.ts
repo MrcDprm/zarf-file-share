@@ -230,10 +230,6 @@ const tr = {
   "cmd.encrypt": "Dosyayı hiçbir yere göndermeden rapor.pdf.zarf olarak şifreler ve açacak anahtarı yazar.",
   "cmd.decrypt.code": "zarf decrypt rapor.pdf.zarf",
   "cmd.decrypt": "Şifreli dosyayı anahtarıyla açar; anahtarı sorar, yazdıkların ekranda görünmez.",
-  "foot.projects": "Projelerim",
-  "foot.otherProjects": "Diğer projelerim",
-  "foot.portfolio": "Portfolyo",
-  "foot.source": "Kaynak kodu",
   "how.title": "Nasıl çalışır",
   "how.1.title": "Dosyanı seç",
   "how.1.text": "Link ile gönder, birinden dosya iste ya da karşındakine kısa bir kod söyle.",
@@ -504,10 +500,6 @@ const en: Record<Key, string> = {
   "cmd.encrypt": "Encrypts the file into report.pdf.zarf without sending it anywhere, and prints the key that opens it.",
   "cmd.decrypt.code": "zarf decrypt report.pdf.zarf",
   "cmd.decrypt": "Opens an encrypted file with its key; it asks for the key and nothing you type is shown.",
-  "foot.projects": "My projects",
-  "foot.otherProjects": "My other projects",
-  "foot.portfolio": "Portfolio",
-  "foot.source": "Source code",
   "how.title": "How it works",
   "how.1.title": "Choose a file",
   "how.1.text": "Send a link, ask someone for files, or read a short code to the person next to you.",
@@ -578,6 +570,7 @@ export function apply(root: ParentNode = document): void {
   // The home page has its own address per language; the receive pages have neither tag.
   document.querySelector('meta[name="description"]')?.setAttribute("content", t("meta.description"));
   document.querySelector('link[rel="canonical"]')?.setAttribute("href", `${location.origin}/${lang === "en" ? "?lang=en" : ""}`);
+  root.querySelectorAll<HTMLElement>("[data-year]").forEach((el) => (el.textContent = String(new Date().getFullYear())));
   root.querySelectorAll<HTMLElement>("[data-i18n]").forEach((el) => (el.textContent = t(el.dataset.i18n as Key)));
   root.querySelectorAll<HTMLElement>("[data-i18n-placeholder]").forEach((el) => el.setAttribute("placeholder", t(el.dataset.i18nPlaceholder as Key)));
   root.querySelectorAll<HTMLElement>("[data-i18n-aria]").forEach((el) => el.setAttribute("aria-label", t(el.dataset.i18nAria as Key)));
