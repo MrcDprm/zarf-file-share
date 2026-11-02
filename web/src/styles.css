@@ -574,10 +574,28 @@ legend {
   color: var(--ink);
   font-weight: 650;
 }
+.foot__ig {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-decoration: none;
+}
+.foot__ig:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.foot__ig svg {
+  width: 1.1em;
+  height: 1.1em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+.foot__ig .ig-dot {
+  fill: currentColor;
+  stroke: none;
+}
 .foot__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem 1.1rem;
   padding-top: 0.85rem;
   border-top: 1px solid var(--rule);
 }
